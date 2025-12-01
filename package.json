@@ -12,7 +12,7 @@
     "react-dom": "^18.3.1",
     "lucide-react": "^0.454.0",
     "recharts": "^2.13.0",
-    "@google/genai": "^0.1.0",
+    "@google/genai": "*",
     "d3": "^7.9.0"
   },
   "devDependencies": {
