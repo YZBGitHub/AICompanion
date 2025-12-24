@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Filter, Search, BarChart, Activity, Database, Users, ChevronDown, ChevronRight, Layers, BookOpen, Brain, Download, X, FileSpreadsheet, Monitor, Cpu, Code, Zap, FileJson, List, Eye, MessageSquare, Clock, ThumbsUp, User, Terminal, PenTool, FileText, AlertTriangle, PlayCircle, Timer, AlertCircle, CheckCircle, Wifi, Settings, PieChart as PieChartIcon } from 'lucide-react';
 import { Language } from '../types';
-import { TEXT, MOCK_TASKS, MOCK_IOT_QUESTIONS, MOCK_AI_ASSISTANTS_LIST, MOCK_AI_QA_DETAILS, MOCK_SOFT_ENV_OPTIONS, MOCK_SOFT_OP_TASKS, MOCK_SOFT_OP_DETAILS, MOCK_AUTO_SCORE_TASKS, MOCK_AUTO_SCORE_DETAILS, MOCK_HARD_ENV_OPTIONS, MOCK_HARD_OP_TASKS, MOCK_HARD_OP_DETAILS } from '../constants';
+import { TEXT, MOCK_TASKS, MOCK_IOT_QUESTIONS, MOCK_AI_ASSISTANTS_LIST, MOCK_AI_QA_DETAILS, MOCK_SOFT_ENV_OPTIONS, MOCK_SOFT_OP_TASKS, MOCK_SOFT_OP_DETAILS, MOCK_AUTO_SCORE_TASKS, MOCK_AUTO_SCORE_DETAILS, MOCK_HARD_ENV_OPTIONS, MOCK_HARD_OP_TASKS, MOCK_HARD_OP_DETAILS, MOCK_NOTE_TASKS, MOCK_NOTE_DETAILS } from '../constants';
 import { DynamicProcessChart } from '../components/DashboardCharts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend as RechartsLegend, BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
@@ -44,7 +44,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
   const [hardExpSubTab, setHardExpSubTab] = useState('interaction'); // interaction | capability
 
   // Learning Operation Data State
-  const [learningOpSubTab, setLearningOpSubTab] = useState('task'); // task | ai | auto_score
+  const [learningOpSubTab, setLearningOpSubTab] = useState('task'); // task | ai | auto_score | note
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<any>(null);
   const [mockQuestionResults, setMockQuestionResults] = useState<any[]>([]);
@@ -210,7 +210,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in flex flex-col md:flex-row gap-8 min-h-screen relative">
-       {/* ... Export Modal ... */}
+       {/* Export Modal */}
        {showExportModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
              <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100 flex flex-col">
@@ -274,23 +274,66 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
        {showDetailModal && selectedRecord && (
          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in" onClick={() => setShowDetailModal(false)}>
            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl overflow-hidden animate-scale-in flex flex-col max-h-[95vh]" onClick={e => e.stopPropagation()}>
-             <div className={`p-5 text-white flex justify-between items-center shrink-0 ${selectedRecord.type === 'ai' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
+             <div className={`p-5 text-white flex justify-between items-center shrink-0 ${selectedRecord.type === 'ai' ? 'bg-gradient-to-r from-purple-600 to-pink-600' : selectedRecord.type === 'note' ? 'bg-gradient-to-r from-teal-600 to-emerald-600' : 'bg-gradient-to-r from-blue-600 to-indigo-600'}`}>
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                   {selectedRecord.type === 'ai' ? <Brain size={20}/> : <FileJson size={20} />} 
+                   {selectedRecord.type === 'ai' ? <Brain size={20}/> : selectedRecord.type === 'note' ? <PenTool size={20}/> : <FileJson size={20} />} 
                    {t.process.detail.title}
                 </h3>
                 <button onClick={() => setShowDetailModal(false)} className="hover:bg-white/20 p-1 rounded-full transition-colors"><X size={20}/></button>
              </div>
              
              {/* --- Detail Content Switching Logic --- */}
-             {selectedRecord.type === 'hard_op' && MOCK_HARD_OP_DETAILS[selectedRecord.env as keyof typeof MOCK_HARD_OP_DETAILS] ? (
+             {selectedRecord.type === 'note' ? (
+                // 0. Course Note Detail (New)
+                <div className="p-8 bg-white h-full overflow-y-auto">
+                    {(() => {
+                        const note = MOCK_NOTE_DETAILS[selectedRecord.id as keyof typeof MOCK_NOTE_DETAILS];
+                        if (!note) return <div>未找到笔记内容</div>;
+                        return (
+                          <div className="max-w-3xl mx-auto">
+                             <div className="border-b border-slate-100 pb-6 mb-8">
+                                <h4 className="text-3xl font-black text-slate-800 mb-4">{note.title}</h4>
+                                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
+                                   <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1 rounded-full"><Clock size={14}/> {selectedRecord.time}</span>
+                                   <span className="flex items-center gap-1.5 bg-teal-50 text-teal-700 px-3 py-1 rounded-full font-bold border border-teal-100">{selectedRecord.course}</span>
+                                   <span className="flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-bold border border-blue-100">{selectedRecord.chapter}</span>
+                                </div>
+                             </div>
+
+                             <div className="flex flex-wrap gap-2 mb-8">
+                                {note.tags.map(tag => (
+                                   <span key={tag} className="text-xs font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-1 rounded">#{tag}</span>
+                                ))}
+                             </div>
+
+                             <div className="prose prose-slate max-w-none">
+                                <p className="text-lg text-slate-700 leading-loose mb-8 text-justify">
+                                   {note.content}
+                                </p>
+                                
+                                <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-200 mb-8 group relative">
+                                   <img src={note.image} alt="笔记配图" className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />
+                                   <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-4 text-white text-xs font-medium">
+                                      关联实验实操截图
+                                   </div>
+                                </div>
+                             </div>
+                             
+                             <div className="mt-12 pt-8 border-t border-slate-50 flex items-center gap-4 text-slate-400">
+                                <ThumbsUp size={20}/>
+                                <span className="text-sm">该笔记已被AI判定为“高质量笔记”，已自动同步至班级知识库。</span>
+                             </div>
+                          </div>
+                        );
+                    })()}
+                </div>
+             ) : selectedRecord.type === 'hard_op' && MOCK_HARD_OP_DETAILS[selectedRecord.env as keyof typeof MOCK_HARD_OP_DETAILS] ? (
                 // 1. Hardware Operation Detail
                 <div className="p-6 bg-slate-50 h-full overflow-y-auto">
                     <div className="flex items-center gap-2 mb-6">
                        <span className="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm">{selectedRecord.env}</span>
                        <h4 className="font-bold text-slate-800 text-xl">{selectedRecord.chapter} - 实验详情</h4>
                     </div>
-                    {/* ... (Keep existing Hardware Op View) ... */}
                     {(() => {
                         const detail = MOCK_HARD_OP_DETAILS[selectedRecord.env as keyof typeof MOCK_HARD_OP_DETAILS];
                         return (
@@ -404,7 +447,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                 </div>
 
              ) : selectedRecord.type === 'ai' ? (
-                // 2. Course AI Assistant Detail (RESTORED)
+                // 2. Course AI Assistant Detail 
                 <div className="p-6 bg-slate-50 h-full overflow-y-auto">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6">
                         <div className="flex items-center gap-3 mb-6">
@@ -461,7 +504,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                 </div>
 
              ) : selectedRecord.type === 'soft_op' ? (
-                // 3. Software Operation Detail (RESTORED)
+                // 3. Software Operation Detail 
                 <div className="p-6 bg-slate-50 h-full overflow-y-auto">
                     <div className="flex items-center gap-2 mb-6">
                        <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold shadow-sm">{selectedRecord.env}</span>
@@ -746,7 +789,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                 </div>
 
              ) : selectedRecord.type === 'auto_score' ? (
-                // 4. Auto Score Detail View (Existing)
+                // 4. Auto Score Detail View 
                 <div className="bg-slate-50 h-full flex flex-col">
                   <div className="p-6 border-b border-slate-200 bg-white shrink-0">
                       <div className="flex items-center gap-2 mb-4">
@@ -822,7 +865,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                             <div className="text-slate-500 text-xs mb-1">{t.process.detail.q_score}</div>
                             <div className="font-bold text-teal-600 text-lg">{selectedRecord.score} 分</div>
                         </div>
-                        {/* ... other task stats ... */}
                       </div>
                   </div>
                   <div className="flex-1 overflow-y-auto p-0">
@@ -885,7 +927,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
        )}
 
        {/* Sidebar Navigation */}
-       {/* (Keeping existing sidebar code) */}
        <div className="w-full md:w-64 shrink-0 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-fit">
           <div className="p-4 bg-teal-50 border-b border-teal-100 font-bold text-teal-800 flex items-center gap-2">
              <Filter size={20} /> 数据分类
@@ -934,7 +975,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
        </div>
 
        {/* Main Content Area */}
-       {/* (Keeping existing main content area structure, just updating the Detail Modal section logic which is already above) */}
        <div className="flex-1 space-y-6 min-w-0">
           <div className="flex justify-between items-center">
              <h2 className="text-2xl font-bold text-slate-800">
@@ -958,16 +998,17 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
              <>
                {/* 1. Sub-Tabs */}
                {activeMenuId === 'learning_op' && (
-                 <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex w-fit">
+                 <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex w-fit overflow-x-auto">
                      {[
                        { id: 'task', label: t.process.filters.learnOpCategories.task, icon: <List size={16}/> },
                        { id: 'ai', label: t.process.filters.learnOpCategories.ai, icon: <Brain size={16}/> },
-                       { id: 'auto_score', label: t.process.filters.learnOpCategories.auto_score, icon: <CheckCircle size={16}/> }
+                       { id: 'auto_score', label: t.process.filters.learnOpCategories.auto_score, icon: <CheckCircle size={16}/> },
+                       { id: 'note', label: t.process.filters.learnOpCategories.note, icon: <PenTool size={16}/> }
                      ].map(tab => (
                        <button
                          key={tab.id}
                          onClick={() => setLearningOpSubTab(tab.id)}
-                         className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all ${
+                         className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
                            learningOpSubTab === tab.id 
                              ? 'bg-teal-600 text-white shadow-md' 
                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
@@ -1055,8 +1096,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
 
                {/* 3. List Content */}
                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
-                  {/* ... Tables Logic (Keeping existing) ... */}
-                  {/* SOFTWARE OP TABLE */}
                   {activeMenuId === 'soft_op' ? (
                      <div className="overflow-x-auto">
                          <table className="w-full text-left text-sm">
@@ -1101,7 +1140,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                          </table>
                      </div>
                   ) : activeMenuId === 'hard_op' ? (
-                     // HARDWARE OP TABLE
                      <div className="overflow-x-auto">
                          <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -1143,8 +1181,38 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                             </tbody>
                          </table>
                      </div>
+                  ) : learningOpSubTab === 'note' ? (
+                     // COURSE NOTE TABLE (New)
+                     <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm border-collapse">
+                           <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
+                              <tr>
+                                 <th className="px-6 py-4 font-bold whitespace-nowrap">时间</th>
+                                 <th className="px-6 py-4 font-bold whitespace-nowrap">课程</th>
+                                 <th className="px-6 py-4 font-bold whitespace-nowrap">章节步骤</th>
+                                 <th className="px-6 py-4 font-bold text-center whitespace-nowrap">操作</th>
+                              </tr>
+                           </thead>
+                           <tbody className="divide-y divide-slate-100">
+                              {MOCK_NOTE_TASKS.map((note) => (
+                                 <tr key={note.id} className="hover:bg-slate-50 transition-colors">
+                                    <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{note.time}</td>
+                                    <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{note.course}</td>
+                                    <td className="px-6 py-4 text-slate-600 text-xs whitespace-nowrap">{note.chapter}</td>
+                                    <td className="px-6 py-4 text-center whitespace-nowrap">
+                                       <button 
+                                         onClick={() => handleOpenDetail(note)}
+                                         className="text-teal-600 hover:text-teal-800 font-bold text-xs flex items-center justify-center gap-1 mx-auto bg-teal-50 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition-all border border-teal-100 shadow-sm"
+                                       >
+                                          <Eye size={12}/> 查看详情
+                                       </button>
+                                    </td>
+                                 </tr>
+                              ))}
+                           </tbody>
+                        </table>
+                     </div>
                   ) : learningOpSubTab === 'task' ? (
-                     // Learning Op Task Table (Existing)
                      <div className="overflow-x-auto">
                          <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -1183,7 +1251,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                          </table>
                      </div>
                   ) : learningOpSubTab === 'auto_score' ? (
-                    // Auto Score Table
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                            <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -1226,7 +1293,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                         </table>
                     </div>
                   ) : (
-                     // AI List Table (Existing)
                      <div className="overflow-x-auto">
                          <table className="w-full text-left text-sm">
                             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -1265,14 +1331,9 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                </div>
              </>
           ) : isComplexDashboard ? (
-             // Complex Dashboard Logic (Existing)
              <>
-               {/* 1. Sub-Category Tabs */}
-               {/* ... (Existing Tabs Code) ... */}
                <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex overflow-x-auto">
-                 {/* ... tabs map ... */}
                  {activeMenuId === 'behavior' ? (
-                     // Learning Behavior Tabs
                      [
                        { id: 'platform', label: t.process.filters.subCategories.platform, icon: <Layers size={16}/> },
                        { id: 'course', label: t.process.filters.subCategories.course, icon: <BookOpen size={16}/> },
@@ -1291,7 +1352,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                        </button>
                      ))
                  ) : activeMenuId === 'soft_exp' ? (
-                     // Software Experiment Tabs
                      [
                        { id: 'env', label: t.process.filters.softExpCategories.env, icon: <Monitor size={16}/> },
                        { id: 'agent', label: t.process.filters.softExpCategories.agent, icon: <Cpu size={16}/> }
@@ -1309,7 +1369,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                        </button>
                      ))
                  ) : (
-                     // Hardware Experiment Tabs
                      [
                        { id: 'interaction', label: t.process.filters.hardExpCategories.interaction, icon: <Zap size={16}/> },
                        { id: 'capability', label: t.process.filters.hardExpCategories.capability, icon: <Code size={16}/> }
@@ -1329,12 +1388,8 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                  )}
                </div>
 
-               {/* 2. Filter Panel */}
-               {/* ... (Existing Filter Panel Code with Agent Selectors moved to top) ... */}
                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-                  {/* Top Row */}
                   <div className={`grid grid-cols-1 gap-6 ${showAgentSelector ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
-                     {/* Agent Selectors */}
                      {showSoftAgentSelector && (
                        <div>
                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">选择软件智能体</label>
@@ -1361,7 +1416,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                        </div>
                      )}
 
-                     {/* Metric Selector */}
                      <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{t.process.filters.metric}</label>
                         <select 
@@ -1369,7 +1423,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                            onChange={e => setMetric(e.target.value)}
                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                         >
-                           {/* ... options ... */}
                            {activeMenuId === 'behavior' && behaviorSubTab === 'platform' && Object.entries(t.process.filters.metrics_platform).map(([k, v]) => (
                              <option key={k} value={k}>{v as string}</option>
                            ))}
@@ -1394,7 +1447,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                         </select>
                      </div>
                      
-                     {/* Data Dimension */}
                      <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{t.process.filters.data_dim}</label>
                         <select 
@@ -1406,7 +1458,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                            <option value="class">{t.process.filters.dims.class}</option>
                            <option value="user">{t.process.filters.dims.user}</option>
                            
-                           {/* Course dimension logic */}
                            {(
                                (activeMenuId === 'behavior' && behaviorSubTab !== 'platform') || 
                                (activeMenuId === 'soft_exp') ||
@@ -1417,7 +1468,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                         </select>
                      </div>
                      
-                     {/* Time Dimension */}
                      <div>
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{t.process.filters.time_dim}</label>
                         <select 
@@ -1425,7 +1475,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                            onChange={e => setTimeGranularity(e.target.value)}
                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                         >
-                           {/* Add Hour for AI/Agent-related things */}
                            {((activeMenuId === 'behavior' && behaviorSubTab === 'ai') || 
                              (activeMenuId === 'soft_exp' && softExpSubTab !== 'env') ||
                              (activeMenuId === 'hard_exp')) && 
@@ -1438,15 +1487,13 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                      </div>
                   </div>
 
-                  {/* Second Row: Specific Selection & Date Range */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4 border-t border-slate-100">
-                     {/* Dynamic Selectors */}
                      {(dimension === 'school' || dimension === 'class' || dimension === 'user') && (
                         <div>
                            <label className="text-xs font-medium text-slate-500 mb-1 block">选择学校</label>
                            <select 
                               value={selectedSchool}
-                              onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(''); }}
+                              onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(MOCK_CLASSES[e.target.value as keyof typeof MOCK_CLASSES][0]); }}
                               className="w-full p-2 bg-white border border-slate-300 rounded text-sm"
                            >
                               {MOCK_SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -1458,7 +1505,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                            <label className="text-xs font-medium text-slate-500 mb-1 block">选择班级</label>
                            <select 
                               value={selectedClass}
-                              onChange={e => { setSelectedClass(e.target.value); setSelectedUser(''); }}
+                              onChange={e => { setSelectedClass(e.target.value); setSelectedUser(MOCK_USERS[e.target.value as keyof typeof MOCK_USERS]?.[0] || ''); }}
                               className="w-full p-2 bg-white border border-slate-300 rounded text-sm"
                            >
                               <option value="">请选择班级...</option>
@@ -1493,7 +1540,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                      )}
                   </div>
 
-                  {/* Date Range Inputs */}
                   <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-lg w-fit">
                      <span className="text-sm font-medium text-slate-600">时间范围:</span>
                      <input 
@@ -1512,7 +1558,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                   </div>
                </div>
 
-               {/* 3. Chart Display */}
                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[400px]">
                   <div className="flex justify-between items-center mb-6">
                      <h3 className="font-bold text-slate-700">统计趋势图</h3>
@@ -1554,7 +1599,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                </div>
              </>
           ) : (
-             // Placeholder for other menus with simple tables
              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[500px]">
                 <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
                    <h3 className="font-bold text-slate-700">详细数据列表</h3>

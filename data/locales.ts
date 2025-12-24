@@ -188,6 +188,7 @@ const ZH_TEXT = {
       skillTitle: '技能掌握排行',
       school: '校内排名',
       class: '班级排名',
+      platform: '平台排名',
       rankCol: '排名',
       nameCol: '姓名',
       classCol: '班级',
@@ -319,7 +320,8 @@ const ZH_TEXT = {
        learnOpCategories: {
          task: '课程任务',
          ai: '课程AI助手',
-         auto_score: '自动评分'
+         auto_score: '自动评分',
+         note: '课程笔记'
        },
        metric: '统计指标',
        time_dim: '时间维度',
@@ -525,7 +527,13 @@ const EN_TEXT = {
   home: ZH_TEXT.home,
   intro: ZH_TEXT.intro,
   companion: ZH_TEXT.companion,
-  skill: ZH_TEXT.skill,
+  skill: {
+      ...ZH_TEXT.skill,
+      rank: {
+          ...ZH_TEXT.skill.rank,
+          platform: 'Platform Rank'
+      }
+  },
   process: ZH_TEXT.process
 };
 

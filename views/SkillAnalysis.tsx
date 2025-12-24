@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Monitor, X, User, GraduationCap, BookOpen, Users, Map, Info, ArrowUp, Award, Target, Share, GitGraph, GitMerge, Maximize2, Minimize2, Brain, Flame, Building2, Cpu, Code } from 'lucide-react';
 import { UserRole, Language } from '../types';
@@ -16,7 +17,7 @@ const SkillAnalysis: React.FC<SkillAnalysisProps> = ({ language, currentRole }) 
   const [selectedClass, setSelectedClass] = useState('21级物联网1班');
   const [selectedStudent, setSelectedStudent] = useState('李明 (2021001001)');
   const [showFormulaModal, setShowFormulaModal] = useState(false);
-  const [rankingTab, setRankingTab] = useState<'school'|'class'>('school');
+  const [rankingTab, setRankingTab] = useState<'school'|'class'|'platform'>('school');
   const [graphMode, setGraphMode] = useState<'network'|'tree'>('network');
   const [isGraphFullscreen, setIsGraphFullscreen] = useState(false);
   const [selectedJobRole, setSelectedJobRole] = useState('物联网安装调试员');
@@ -281,6 +282,12 @@ const SkillAnalysis: React.FC<SkillAnalysisProps> = ({ language, currentRole }) 
                >
                  {t.skill.rank.class}
                </button>
+               <button 
+                 onClick={() => setRankingTab('platform')}
+                 className={`flex-1 text-xs font-bold py-2 rounded-md transition-all ${rankingTab === 'platform' ? 'bg-white shadow-sm text-teal-700' : 'text-slate-500 hover:text-slate-700'}`}
+               >
+                 {t.skill.rank.platform}
+               </button>
              </div>
 
              <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar" style={{maxHeight: 'calc(100% - 100px)'}}>
@@ -292,17 +299,28 @@ const SkillAnalysis: React.FC<SkillAnalysisProps> = ({ language, currentRole }) 
                          </span>
                          <div className="flex flex-col">
                             <span className="font-medium text-slate-700">
-                              {rankingTab === 'school' ? `校友 ${1001 + idx}` : `同学 ${201 + idx}`}
+                              {rankingTab === 'platform' 
+                                 ? `用户 ${5000 + idx}` 
+                                 : (rankingTab === 'school' ? `校友 ${1001 + idx}` : `同学 ${201 + idx}`)
+                              }
                             </span>
                             {rankingTab === 'school' && (
                               <span className="text-xs text-slate-400">
                                  21级物联网{1 + (idx % 3)}班
                               </span>
                             )}
+                            {rankingTab === 'platform' && (
+                              <span className="text-xs text-slate-400">
+                                 {['深圳职业技术大学', '金华职业技术学院', '南京信息职院'][idx % 3]}
+                              </span>
+                            )}
                          </div>
                       </div>
                       <span className="font-bold text-teal-600">
-                        {rankingTab === 'school' ? 99 - idx : 95 - idx * 2}%
+                        {rankingTab === 'platform' 
+                           ? (99.8 - idx * 0.1).toFixed(1)
+                           : (rankingTab === 'school' ? 99 - idx : 95 - idx * 2)
+                        }%
                       </span>
                    </div>
                 ))}
@@ -432,4 +450,3 @@ const SkillAnalysis: React.FC<SkillAnalysisProps> = ({ language, currentRole }) 
 };
 
 export default SkillAnalysis;
-    

@@ -243,6 +243,33 @@ export const MOCK_AUTO_SCORE_TASKS = [
   { id: 103, time: '2023-11-27 15:00', course: '《嵌入式开发》', chapter: '实验4 - 传感器通信', env: '硬件实验箱', score: 95, duration: '30m', status: '已评分', type: 'auto_score' },
 ];
 
+export const MOCK_NOTE_TASKS = [
+  { id: 201, time: '2023-11-28 15:45', course: '《智慧园区》', chapter: '第3章 - 3.1 仿真搭建', type: 'note' },
+  { id: 202, time: '2023-11-27 11:20', course: '《嵌入式开发》', chapter: '第2章 - 2.3 串口通信', type: 'note' },
+  { id: 203, time: '2023-11-25 09:30', course: '《Python基础》', chapter: '第4章 - 4.2 字典操作', type: 'note' },
+];
+
+export const MOCK_NOTE_DETAILS = {
+  201: {
+    title: '智慧园区仿真搭建心得',
+    content: '在今天的实验中，我掌握了如何通过2D模拟器构建复杂的网格拓扑。重点在于网关的IP配置必须与子节点在同一网段，否则会出现Ping不通的情况。通过抓取ICMP包，我观察到了三次握手的过程，非常有意思。',
+    image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800',
+    tags: ['仿真', '网络拓扑', 'ICMP']
+  },
+  202: {
+    title: '嵌入式串口通信实验笔记',
+    content: 'STM32的USART配置需要注意波特率匹配。如果波特率不一致，接收到的数据会产生乱码。此外，在使用中断接收时，必须及时清除RXNE标志位，避免程序卡死在中断处理函数中。',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=800',
+    tags: ['STM32', 'USART', '中断']
+  },
+  203: {
+    title: 'Python字典高效操作',
+    content: '字典的items()方法可以同时遍历键和值，这在处理API返回的JSON数据时非常高效。相比传统的索引访问，使用get()方法可以有效避免KeyError异常。',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&q=80&w=800',
+    tags: ['Python', '数据结构', '最佳实践']
+  }
+};
+
 export const MOCK_AUTO_SCORE_DETAILS = [
    { rule: '设备连接完整性', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '网络拓扑构建' },
    { rule: '传感器配置参数', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '设备参数配置' },
