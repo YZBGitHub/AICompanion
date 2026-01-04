@@ -1,15 +1,13 @@
+
 import { GoogleGenAI } from "@google/genai";
 
-const apiKey = process.env.API_KEY || '';
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+// Always use const ai = new GoogleGenAI({apiKey: process.env.API_KEY});
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+/**
+ * Generates personalized learning feedback for a student based on their strengths and weaknesses.
+ */
 export const generateStudentFeedback = async (studentName: string, strengths: string[], weaknesses: string[], language: 'zh' | 'en' = 'zh') => {
-  if (!ai) {
-    return language === 'zh' 
-      ? "AI服务不可用。请配置API Key以接收个性化反馈。" 
-      : "AI service is unavailable. Please configure the API Key to receive personalized feedback.";
-  }
-
   try {
     const langPrompt = language === 'zh' ? "Please respond in Chinese (Simplified)." : "Please respond in English.";
     const prompt = `
@@ -23,11 +21,13 @@ export const generateStudentFeedback = async (studentName: string, strengths: st
       Also suggest 2 specific career roles they might be suited for.
     `;
 
+    // Use gemini-3-flash-preview for general text generation tasks
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
     });
 
+    // Directly access the text property from the response
     return response.text;
   } catch (error) {
     console.error("Gemini API Error:", error);
@@ -35,16 +35,10 @@ export const generateStudentFeedback = async (studentName: string, strengths: st
   }
 };
 
+/**
+ * Automatically grades an assignment submission and provides structured feedback.
+ */
 export const autoGradeSubmission = async (code: string, assignmentType: string, language: 'zh' | 'en' = 'zh') => {
-  if (!ai) {
-    return {
-      score: 85,
-      feedback: language === 'zh' 
-        ? "AI服务不可用。这是模拟评分。请配置API Key以获取真实评分。"
-        : "AI service unavailable. This is a mock score. Please configure API Key for real grading."
-    };
-  }
-
   try {
     const langPrompt = language === 'zh' ? "Please respond in Chinese (Simplified)." : "Please respond in English.";
     const prompt = `
@@ -60,15 +54,17 @@ export const autoGradeSubmission = async (code: string, assignmentType: string, 
       3. Return ONLY a JSON object in this format: { "score": number, "feedback": "string" }
     `;
 
+    // Use gemini-3-flash-preview for automated grading tasks
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3-flash-preview',
       contents: prompt,
       config: {
         responseMimeType: 'application/json'
       }
     });
 
-    return JSON.parse(response.text);
+    // response.text directly returns the extracted string output
+    return JSON.parse(response.text || '{}');
   } catch (error) {
     console.error("Gemini Grading Error:", error);
     return {

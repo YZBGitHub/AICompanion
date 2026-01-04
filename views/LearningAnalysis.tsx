@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   GraduationCap, Brain, Users, Award, BookOpen, Star, 
@@ -6,24 +7,52 @@ import {
   Calendar, Clock, CheckCircle, ChevronRight, DollarSign,
   Lightbulb, MousePointerClick, Monitor, Cpu, RefreshCw, Sparkles, Rocket,
   Send, Bot, Layout, PieChart, Info, Settings,
-  AlertTriangle,
+  AlertTriangle, Route, BarChart,
   LineChart as LineChartIcon,
-  Circle
+  Circle,
+  LogIn,
+  FileText,
+  Timer,
+  HardDrive,
+  Wifi,
+  Maximize,
+  Play,
+  Power,
+  MessageSquare,
+  Trophy,
+  Layers,
+  Map
 } from 'lucide-react';
 import { UserRole, Language } from '../types';
 import { 
-  TEXT, AI_PERSONAS, SDT_METRICS, CLASS_STATS, LEARNING_COURSES, 
+  TEXT, AI_PERSONAS, CLASS_STATS, LEARNING_COURSES, 
   LEARNING_EXAMS, LEARNING_SKILLS_FULL, WEAKNESS_DATA, JOB_RECOMMENDATIONS, 
-  MOCK_PROCESS_SUMMARY, CLASS_SKILL_RANKING, CLASS_STUDENT_RANKING,
+  CLASS_SKILL_RANKING, CLASS_STUDENT_RANKING,
   CLASS_COURSE_STATS, CLASS_EXAM_LIST, CLASS_WEAKNESS_RADAR, SDT_WARNING_STUDENTS 
 } from '../constants';
 import { StudentRadarChart, ClassPerformanceChart, TrendChart, SkillRadarChart } from '../components/DashboardCharts';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend as RechartsLegend, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend as RechartsLegend, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area, BarChart as RechartsBarChart, Bar as RechartsBar } from 'recharts';
 
 // Mock data for selectors
 const MOCK_SCHOOLS = ['深圳职业技术大学', '金华职业技术学院'];
 const MOCK_CLASSES = ['21级物联网1班', '21级物联网2班', '21级嵌入式1班'];
 const MOCK_STUDENTS = ['李明 (2021001001)', '张伟 (2021001002)', '王芳 (2021001003)'];
+
+// Mock Trend Data for Behavior Mini Charts
+const MOCK_BEHAVIOR_TRENDS = {
+  platform: [
+    { day: '1', val: 30 }, { day: '2', val: 45 }, { day: '3', val: 35 },
+    { day: '4', val: 60 }, { day: '5', val: 55 }, { day: '6', val: 80 }, { day: '7', val: 75 }
+  ],
+  software: [
+    { day: '1', val: 20 }, { day: '2', val: 25 }, { day: '3', val: 50 },
+    { day: '4', val: 40 }, { day: '5', val: 70 }, { day: '6', val: 65 }, { day: '7', val: 90 }
+  ],
+  hardware: [
+    { day: '1', val: 10 }, { day: '2', val: 15 }, { day: '3', val: 20 },
+    { day: '4', val: 45 }, { day: '5', val: 30 }, { day: '6', val: 50 }, { day: '7', val: 60 }
+  ]
+};
 
 interface LearningAnalysisProps {
   language: Language;
@@ -33,7 +62,7 @@ interface LearningAnalysisProps {
 const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRole = UserRole.STUDENT }) => {
   const t = TEXT[language];
   const [viewMode, setViewMode] = useState<'student' | 'teacher'>(currentRole === UserRole.TEACHER ? 'teacher' : 'student');
-  const [teacherTab, setTeacherTab] = useState<'assistant' | 'profile' | 'compare'>('assistant');
+  const [teacherTab, setTeacherTab] = useState<'assistant' | 'profile'>('assistant');
   const [selectedPersonaId, setSelectedPersonaId] = useState('geek'); 
   const [skillFilter, setSkillFilter] = useState('全部');
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -43,18 +72,22 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
   const [selectedClass, setSelectedClass] = useState(MOCK_CLASSES[0]);
   const [selectedStudent, setSelectedStudent] = useState(MOCK_STUDENTS[0]);
 
+  // NEW: Course Filter for Class Profile
+  const [selectedProfileCourse, setSelectedProfileCourse] = useState('《智慧园区》');
+
   // Teacher AI Assistant State
   const [aiChatInput, setAiChatInput] = useState('');
   const [aiChatHistory, setAiChatHistory] = useState<{sender: 'user'|'ai', text: string}[]>([
     { sender: 'ai', text: t.learning.teacher.ai.welcome },
   ]);
-  const [selectedAiClasses, setSelectedAiClasses] = useState<string[]>([]);
-  const [selectedAiDataTypes, setSelectedAiDataTypes] = useState<string[]>([]);
+  const [selectedAiClasses, setSelectedAiClasses] = useState<string[]>(MOCK_CLASSES.slice(0, 1));
+  const [selectedAiDataTypes, setSelectedAiDataTypes] = useState<string[]>(['技能点数据', '全过程数据-学习行为']);
 
   const currentPersona = AI_PERSONAS.find(p => p.id === selectedPersonaId) || AI_PERSONAS[0];
   const canSelectStudent = currentRole === UserRole.TEACHER || currentRole === UserRole.ADMIN;
   const canSelectSchool = currentRole === UserRole.ADMIN;
   const uniqueCourses = ['全部', ...Array.from(new Set(LEARNING_SKILLS_FULL.map(s => s.course)))];
+  const teacherCourses = Array.from(new Set(LEARNING_SKILLS_FULL.map(s => s.course)));
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return 'bg-green-500'; // Excellent
@@ -62,9 +95,9 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
     return 'bg-slate-300'; // Needs Improvement
   };
 
-  const getSkillOpacity = (skillCourse: string) => {
-     if (skillFilter === '全部') return 'opacity-100';
-     return skillFilter === skillCourse ? 'opacity-100 scale-105 shadow-md' : 'opacity-20 grayscale scale-95';
+  const getSkillOpacity = (skillCourse: string, currentFilter: string) => {
+     if (currentFilter === '全部') return 'opacity-100';
+     return currentFilter === skillCourse ? 'opacity-100 scale-105 shadow-md' : 'opacity-20 grayscale scale-95';
   };
 
   const handleRegeneratePersona = () => {
@@ -87,27 +120,9 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
      }, 1000);
   };
 
-  // Mapped indicators for SDT based on Process Data Summary
-  const SDT_INDICATORS = {
-    autonomy: [
-      { label: language === 'zh' ? '用户登录次数' : 'Login Count', val: MOCK_PROCESS_SUMMARY.behavior.logins, icon: <MousePointerClick size={12}/> },
-      { label: language === 'zh' ? '实验环境打开' : 'Env Open Count', val: MOCK_PROCESS_SUMMARY.softExp.openCount, icon: <Monitor size={12}/> },
-      { label: language === 'zh' ? '平台在线时长' : 'Online Duration', val: MOCK_PROCESS_SUMMARY.behavior.onlineTime, icon: <Clock size={12}/> }
-    ],
-    competence: [
-      { label: language === 'zh' ? '软实验运行时长' : 'Soft Run Time', val: MOCK_PROCESS_SUMMARY.softExp.runTime, icon: <Cpu size={12}/> },
-      { label: language === 'zh' ? '硬实验在线时长' : 'Hard Online Time', val: MOCK_PROCESS_SUMMARY.hardExp.onlineTime, icon: <Activity size={12}/> },
-      { label: language === 'zh' ? '硬件打开次数' : 'Hard Open Count', val: MOCK_PROCESS_SUMMARY.hardExp.openCount, icon: <Zap size={12}/> }
-    ],
-    relatedness: [
-      { label: language === 'zh' ? 'AI 问答次数' : 'AI QA Count', val: MOCK_PROCESS_SUMMARY.behavior.aiQaCount, icon: <Brain size={12}/> },
-      { label: language === 'zh' ? '硬件问答时长' : 'Hard QA Time', val: MOCK_PROCESS_SUMMARY.hardExp.qaTime, icon: <Clock size={12}/> },
-      { label: language === 'zh' ? '硬件会话数量' : 'Hard Sessions', val: MOCK_PROCESS_SUMMARY.hardExp.sessionCount, icon: <Users size={12}/> }
-    ]
+  const handleClearHistory = () => {
+    setAiChatHistory([{ sender: 'ai', text: t.learning.teacher.ai.welcome }]);
   };
-
-  // Colors for Class Distribution Pie
-  const DIST_COLORS = ['#10b981', '#60a5fa', '#cbd5e1'];
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in min-h-screen">
@@ -138,7 +153,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
       {viewMode === 'student' ? (
         // ================= STUDENT VIEW =================
         <div className="space-y-8">
-           {/* 1. Basic Info & Filter (Role Context Aware) */}
+           {/* 1. Basic Info & Filter */}
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-wrap gap-6 items-center justify-between">
               <div className="flex items-center gap-4">
                  <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-teal-600 rounded-full flex items-center justify-center text-white shadow-lg shrink-0">
@@ -188,9 +203,8 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               )}
            </div>
 
-           {/* 2. Academic Overview (Courses & Exams) */}
+           {/* 2. Academic Overview */}
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Course Status */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                  <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                     <BookOpen size={20} className="text-teal-600"/> {t.learning.overview.courses}
@@ -228,7 +242,6 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                  </div>
               </div>
 
-              {/* Exam Status */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                  <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                     <Award size={20} className="text-purple-600"/> {t.learning.overview.exams}
@@ -268,7 +281,195 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               </div>
            </div>
 
-           {/* 3. Skill Analysis (Dense Chip View with Tooltip) */}
+           {/* 3. Learning Engagement Analysis */}
+           <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
+
+              <div className="relative z-10">
+                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                    <div>
+                       <h3 className="text-2xl font-black flex items-center gap-3 text-white">
+                          <Activity className="text-teal-400" size={28}/> {t.learning.engagement.title}
+                       </h3>
+                       <p className="text-slate-400 text-sm mt-1">{t.learning.engagement.summary}</p>
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center flex items-center gap-4 px-6">
+                       <div className="w-12 h-12 bg-teal-500/20 rounded-full flex items-center justify-center text-teal-400 shadow-inner">
+                          <Trophy size={28} />
+                       </div>
+                       <div className="text-left">
+                          <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Engagement Level</div>
+                          <div className="text-xl font-black text-white">高水平活跃</div>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="mb-10">
+                    <div className="flex items-center gap-3 mb-6">
+                       <div className="h-px bg-white/10 flex-1"></div>
+                       <span className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">{t.learning.engagement.behavior_data}</span>
+                       <div className="h-px bg-white/10 flex-1"></div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                           <div className="flex items-center gap-3 mb-6">
+                              <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-emerald-500/20"><Layout size={20}/></div>
+                              <h4 className="font-bold text-emerald-100">{t.learning.engagement.platform}</h4>
+                           </div>
+                           <div className="grid grid-cols-2 gap-y-4 gap-x-4 mb-6">
+                              {[
+                                 { icon: <LogIn size={12}/>, label: t.learning.engagement.metrics.logins, val: '45' },
+                                 { icon: <Clock size={12}/>, label: t.learning.engagement.metrics.online_time, val: '120h' },
+                                 { icon: <MessageSquare size={12}/>, label: t.learning.engagement.metrics.ai_qa, val: '350' },
+                                 { icon: <CheckCircle size={12}/>, label: t.learning.engagement.metrics.task_done, val: '28' }
+                              ].map((m, i) => (
+                                 <div key={i}>
+                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-tight">
+                                       <span className="text-emerald-500">{m.icon}</span> {m.label}
+                                    </div>
+                                    <div className="text-xl font-black text-white">{m.val}</div>
+                                 </div>
+                              ))}
+                           </div>
+                           <div className="h-20 mt-auto">
+                              <ResponsiveContainer width="100%" height="100%">
+                                 <AreaChart data={MOCK_BEHAVIOR_TRENDS.platform}>
+                                    <defs>
+                                       <linearGradient id="colorPlat" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                       </linearGradient>
+                                    </defs>
+                                    <Area type="monotone" dataKey="val" stroke="#10b981" fillOpacity={1} fill="url(#colorPlat)" strokeWidth={2} />
+                                 </AreaChart>
+                              </ResponsiveContainer>
+                           </div>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                           <div className="flex items-center gap-3 mb-6">
+                              <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-blue-500/20"><Monitor size={20}/></div>
+                              <h4 className="font-bold text-blue-100">{t.learning.engagement.software}</h4>
+                           </div>
+                           <div className="space-y-3 mb-6">
+                              {[
+                                 { icon: <Maximize size={12}/>, label: t.learning.engagement.metrics.env_open, val: '28次' },
+                                 { icon: <Timer size={12}/>, label: t.learning.engagement.metrics.runtime, val: '45h' },
+                                 { icon: <Bot size={12}/>, label: t.learning.engagement.metrics.agent_qa, val: '120次' }
+                              ].map((m, i) => (
+                                 <div key={i} className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                       <span className="text-blue-500">{m.icon}</span> {m.label}
+                                    </div>
+                                    <div className="text-sm font-black text-white">{m.val}</div>
+                                 </div>
+                              ))}
+                           </div>
+                           <div className="h-20 mt-auto">
+                              <ResponsiveContainer width="100%" height="100%">
+                                 <AreaChart data={MOCK_BEHAVIOR_TRENDS.software}>
+                                    <defs>
+                                       <linearGradient id="colorSoft" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                       </linearGradient>
+                                    </defs>
+                                    <Area type="monotone" dataKey="val" stroke="#3b82f6" fillOpacity={1} fill="url(#colorSoft)" strokeWidth={2} />
+                                 </AreaChart>
+                              </ResponsiveContainer>
+                           </div>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                           <div className="flex items-center gap-3 mb-6">
+                              <div className="p-2 bg-purple-500/20 text-purple-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-purple-500/20"><HardDrive size={20}/></div>
+                              <h4 className="font-bold text-purple-100">{t.learning.engagement.hardware}</h4>
+                           </div>
+                           <div className="space-y-3 mb-6">
+                              {[
+                                 { icon: <LogIn size={12}/>, label: t.learning.engagement.metrics.hard_login, val: '15次' },
+                                 { icon: <Wifi size={12}/>, label: t.learning.engagement.metrics.hard_online, val: '12h' },
+                                 { icon: <MessageSquare size={12}/>, label: t.learning.engagement.metrics.hard_qa, val: '45次' }
+                              ].map((m, i) => (
+                                 <div key={i} className="flex items-center justify-between border-b border-white/5 pb-2">
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                       <span className="text-purple-500">{m.icon}</span> {m.label}
+                                    </div>
+                                    <div className="text-sm font-black text-white">{m.val}</div>
+                                 </div>
+                              ))}
+                           </div>
+                           <div className="h-20 mt-auto">
+                              <ResponsiveContainer width="100%" height="100%">
+                                 <AreaChart data={MOCK_BEHAVIOR_TRENDS.hardware}>
+                                    <defs>
+                                       <linearGradient id="colorHard" x1="0" y1="0" x2="0" y2="1">
+                                          <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                                          <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                       </linearGradient>
+                                    </defs>
+                                    <Area type="monotone" dataKey="val" stroke="#a855f7" fillOpacity={1} fill="url(#colorHard)" strokeWidth={2} />
+                                 </AreaChart>
+                              </ResponsiveContainer>
+                           </div>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div>
+                    <div className="flex items-center gap-3 mb-6">
+                       <div className="h-px bg-white/10 flex-1"></div>
+                       <span className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">{t.learning.engagement.op_data}</span>
+                       <div className="h-px bg-white/10 flex-1"></div>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="bg-gradient-to-br from-teal-500/20 to-emerald-500/20 border border-teal-500/30 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
+                           <div className="w-20 h-20 bg-teal-500/20 rounded-2xl flex items-center justify-center text-teal-400 shadow-xl border border-teal-500/20 shrink-0">
+                              <Play size={40} />
+                           </div>
+                           <div className="flex-1 text-center md:text-left">
+                              <h4 className="text-xl font-bold text-white mb-2">{t.learning.engagement.op_hard}</h4>
+                              <div className="grid grid-cols-2 gap-4">
+                                 <div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                       <Clock size={10} className="text-teal-500"/> {t.learning.engagement.metrics.op_time}
+                                    </div>
+                                    <div className="text-2xl font-black text-teal-400">12h 45m</div>
+                                 </div>
+                                 <div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                       <Power size={10} className="text-teal-500"/> {t.learning.engagement.metrics.dev_online}
+                                    </div>
+                                    <div className="text-2xl font-black text-teal-400">150h+</div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+
+                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
+                           <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+                              <MousePointerClick size={32} />
+                           </div>
+                           <div className="flex-1">
+                              <h4 className="font-bold text-white mb-1">{t.learning.engagement.op_soft}</h4>
+                              <p className="text-xs text-slate-500">记录学生在 2D/3D 虚拟仿真、ThingsBoard 及 Node-Red 环境中的深度实操时长。</p>
+                              <div className="flex gap-6 mt-3">
+                                 <div>
+                                    <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                       <Clock size={10} className="text-blue-500"/> 软件实验环境操作时长
+                                    </div>
+                                    <div className="text-2xl font-black text-white">32h 15m</div>
+                                 </div>
+                              </div>
+                           </div>
+                        </div>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+           {/* 4. Skill Analysis (Dense Chip View with Tooltip) */}
            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                  <h3 className="font-bold text-slate-700 flex items-center gap-2 text-xl">
@@ -299,7 +500,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                  {LEARNING_SKILLS_FULL.map((skill, i) => (
                     <div 
                        key={i}
-                       className={`group relative h-6 min-w-[3rem] px-1 rounded flex items-center justify-center text-[10px] font-bold text-white cursor-help transition-all duration-300 ${getScoreColor(skill.score)} ${getSkillOpacity(skill.course)}`}
+                       className={`group relative h-6 min-w-[3rem] px-1 rounded flex items-center justify-center text-[10px] font-bold text-white cursor-help transition-all duration-300 ${getScoreColor(skill.score)} ${getSkillOpacity(skill.course, skillFilter)}`}
                     >
                        {skill.code}
                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-slate-800 text-white text-xs rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-lg">
@@ -318,7 +519,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               </div>
            </div>
 
-           {/* 4. Weakness Analysis (Unified, Full Width) */}
+           {/* 5. Weakness Analysis (Unified, Full Width) */}
            <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
               <div className="flex flex-col lg:flex-row items-center gap-6">
                  <div className="w-full lg:w-1/3 shrink-0">
@@ -354,7 +555,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               </div>
            </div>
 
-           {/* 5. Job Recommendations */}
+           {/* 6. Job Recommendations - RESTORED */}
            <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
               <h4 className="font-bold text-slate-800 mb-6 flex items-center gap-2 text-xl">
                  <Briefcase size={24} className="text-orange-500"/> {t.learning.ai_analysis.job_rec}
@@ -406,122 +607,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               </div>
            </div>
 
-           {/* 6. SDT Analysis */}
-           <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
-              <h3 className="font-bold text-slate-800 text-xl mb-6 flex items-center gap-2">
-                 <Shield size={24} className="text-teal-600"/> {t.learning.sdt.title}
-              </h3>
-
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-8">
-                 <h4 className="font-bold text-slate-700 text-sm uppercase tracking-wide mb-4 flex items-center gap-2">
-                    <Activity size={16} className="text-blue-500"/> {t.learning.sdt.summary_title}
-                 </h4>
-                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 divide-y md:divide-y-0 md:divide-x divide-slate-200">
-                    <div className="space-y-3 px-2">
-                       <div className="flex items-center gap-2 font-bold text-slate-800">
-                          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center"><Monitor size={18}/></div>
-                          {t.learning.sdt.beh_title}
-                       </div>
-                       <div className="grid grid-cols-2 gap-y-2 text-sm pt-2">
-                          <div className="text-slate-500">用户登录: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.behavior.logins}次</span></div>
-                          <div className="text-slate-500">平台在线: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.behavior.onlineTime}</span></div>
-                          <div className="text-slate-500 col-span-2">AI问答总次: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.behavior.aiQaCount}次</span></div>
-                       </div>
-                    </div>
-                    <div className="space-y-3 pt-4 md:pt-0 md:pl-6 px-2">
-                       <div className="flex items-center gap-2 font-bold text-slate-800">
-                          <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center"><Cpu size={18}/></div>
-                          {t.learning.sdt.soft_title}
-                       </div>
-                       <div className="grid grid-cols-2 gap-y-2 text-sm pt-2">
-                          <div className="text-slate-500">环境打开: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.softExp.openCount}次</span></div>
-                          <div className="text-slate-500">运行总时长: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.softExp.runTime}</span></div>
-                       </div>
-                    </div>
-                    <div className="space-y-3 pt-4 md:pt-0 md:pl-6 px-2">
-                       <div className="flex items-center gap-2 font-bold text-slate-800">
-                          <div className="w-8 h-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center"><Zap size={18}/></div>
-                          {t.learning.sdt.hard_title}
-                       </div>
-                       <div className="grid grid-cols-2 gap-y-2 text-sm pt-2">
-                          <div className="text-slate-500">智能体登录: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.hardExp.loginCount}次</span></div>
-                          <div className="text-slate-500">在线总时: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.hardExp.onlineTime}</span></div>
-                          <div className="text-slate-500">会话总数: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.hardExp.sessionCount}个</span></div>
-                          <div className="text-slate-500">问答总时: <span className="text-slate-800 font-bold">{MOCK_PROCESS_SUMMARY.hardExp.qaTime}</span></div>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                 <div className="bg-slate-900 rounded-2xl p-6 text-white flex flex-col justify-center relative overflow-hidden shadow-lg lg:col-span-1">
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-900 to-slate-900"></div>
-                    <div className="relative z-10 text-center">
-                       <div className="text-slate-400 text-xs font-bold uppercase mb-2">{t.learning.sdt.total_score}</div>
-                       <div className="text-6xl font-black text-white mb-2">{SDT_METRICS.total.score}</div>
-                       <div className="text-teal-400 text-sm font-bold">校内排名 No.{SDT_METRICS.total.rank}</div>
-                    </div>
-                 </div>
-
-                 <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-blue-50 rounded-2xl p-5 border border-blue-100 flex flex-col hover:shadow-md transition-shadow">
-                       <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 bg-blue-100 rounded-lg text-blue-600"><User size={20}/></div>
-                          <div>
-                             <h4 className="font-bold text-slate-700 text-sm">{t.learning.sdt.autonomy}</h4>
-                             <div className="text-2xl font-black text-blue-600">{SDT_METRICS.autonomy.score}</div>
-                          </div>
-                       </div>
-                       <div className="space-y-3 bg-white/60 rounded-xl p-4 border border-blue-100/50 flex-1">
-                          {SDT_INDICATORS.autonomy.map((ind, i) => (
-                             <div key={i} className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500 flex items-center gap-2">{ind.icon} {ind.label}</span>
-                                <span className="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-blue-50">{ind.val}</span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-
-                    <div className="bg-green-50 rounded-2xl p-5 border border-green-100 flex flex-col hover:shadow-md transition-shadow">
-                       <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 bg-green-100 rounded-lg text-green-600"><Award size={20}/></div>
-                          <div>
-                             <h4 className="font-bold text-slate-700 text-sm">{t.learning.sdt.competence}</h4>
-                             <div className="text-2xl font-black text-green-600">{SDT_METRICS.competence.score}</div>
-                          </div>
-                       </div>
-                       <div className="space-y-3 bg-white/60 rounded-xl p-4 border border-green-100/50 flex-1">
-                          {SDT_INDICATORS.competence.map((ind, i) => (
-                             <div key={i} className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500 flex items-center gap-2">{ind.icon} {ind.label}</span>
-                                <span className="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-green-50">{ind.val}</span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-
-                    <div className="bg-purple-50 rounded-2xl p-5 border border-purple-100 flex flex-col hover:shadow-md transition-shadow">
-                       <div className="flex items-center gap-3 mb-4">
-                          <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><Heart size={20}/></div>
-                          <div>
-                             <h4 className="font-bold text-slate-700 text-sm">{t.learning.sdt.relatedness}</h4>
-                             <div className="text-2xl font-black text-purple-600">{SDT_METRICS.relatedness.score}</div>
-                          </div>
-                       </div>
-                       <div className="space-y-3 bg-white/60 rounded-xl p-4 border border-purple-100/50 flex-1">
-                          {SDT_INDICATORS.relatedness.map((ind, i) => (
-                             <div key={i} className="flex justify-between items-center text-xs">
-                                <span className="text-slate-500 flex items-center gap-2">{ind.icon} {ind.label}</span>
-                                <span className="font-bold text-slate-700 bg-white px-2 py-0.5 rounded border border-purple-50">{ind.val}</span>
-                             </div>
-                          ))}
-                       </div>
-                    </div>
-                 </div>
-              </div>
-           </div>
-
-           {/* 7. AI Comprehensive Analysis */}
+           {/* 7. AI Comprehensive Analysis - RESTORED */}
            <div className="bg-gradient-to-br from-violet-50 to-fuchsia-50 rounded-2xl p-8 border border-purple-100 shadow-sm relative overflow-hidden">
               <div className="relative z-10">
                  <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
@@ -586,27 +672,21 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                        </div>
                     </div>
 
-                    <div className="lg:w-1/3 flex flex-col gap-4">
-                       <div className="bg-white/80 backdrop-blur-sm p-5 rounded-2xl border border-white/50 shadow-sm flex-1">
-                          <h4 className="font-bold text-slate-800 mb-3 flex items-center gap-2 text-sm">
-                             <Search size={16} className="text-blue-500"/> SDT 深度归因
-                          </h4>
-                          <p className="text-sm text-slate-600 leading-relaxed text-justify">
-                             基于您的全过程数据，您在 <span className="text-blue-600 font-bold">自主性 (85分)</span> 维度表现优异，常在深夜主动进行实验探索，展现出极强的内驱力。这与 <span className="text-purple-600 font-bold">{currentPersona.name}</span> 形象高度契合。建议在小组协作中增加互动，以平衡关系性维度的得分。
-                          </p>
-                       </div>
-
-                       <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-5 rounded-2xl shadow-lg text-white flex-1 flex flex-col justify-center relative overflow-hidden">
+                    <div className="lg:w-1/3 flex flex-col">
+                       <div className="bg-gradient-to-r from-teal-500 to-emerald-600 p-8 rounded-2xl shadow-lg text-white flex-1 flex flex-col justify-center relative overflow-hidden">
                           <div className="absolute top-0 right-0 p-4 opacity-10">
-                             <Rocket size={80} />
+                             <Rocket size={120} />
                           </div>
                           <div className="relative z-10">
-                             <div className="text-teal-100 text-xs font-bold uppercase tracking-wider mb-1">最佳岗位匹配</div>
-                             <div className="text-2xl font-black mb-3">{JOB_RECOMMENDATIONS[0].title}</div>
-                             <div className="h-px bg-white/20 w-full mb-3"></div>
-                             <p className="text-sm font-medium italic opacity-90 leading-relaxed">
-                                "你的代码拥有连接万物的力量。保持这份热爱，未来的智慧城市将由你亲手构建！"
+                             <div className="text-teal-100 text-sm font-bold uppercase tracking-wider mb-2">最佳岗位匹配</div>
+                             <div className="text-3xl font-black mb-4">{JOB_RECOMMENDATIONS[0].title}</div>
+                             <div className="h-px bg-white/20 w-full mb-6"></div>
+                             <p className="text-base font-medium italic opacity-90 leading-relaxed mb-6">
+                                "你的代码拥有连接万物的力量。基于全过程学习行为分析，展现出极强的内驱力。保持这份热爱，未来的智慧城市将由你亲手构建！"
                              </p>
+                             <div className="flex items-center gap-2 text-teal-200 text-sm font-bold">
+                                <TrendingUp size={16}/> 建议：在小组协作中增加互动以提升职业软技能。
+                             </div>
                           </div>
                        </div>
                     </div>
@@ -636,26 +716,33 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                   >
                     <Layout size={18}/> {t.learning.teacher.tabs.profile}
                   </button>
-                  <button 
-                    onClick={() => setTeacherTab('compare')}
-                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${
-                      teacherTab === 'compare' ? 'bg-teal-50 text-teal-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <PieChart size={18}/> {t.learning.teacher.tabs.compare}
-                  </button>
                </div>
 
-               {/* Class Selector for Teacher (Moved to same level) */}
-               <div className="flex items-center gap-2 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
-                   <div className="px-2 text-slate-500 text-xs font-bold uppercase">当前班级:</div>
-                   <select 
-                      value={selectedClass} 
-                      onChange={e => setSelectedClass(e.target.value)}
-                      className="border-none bg-slate-50 rounded-lg px-3 py-1.5 text-sm font-medium text-slate-700 focus:ring-0 outline-none cursor-pointer hover:bg-slate-100"
-                   >
-                      {MOCK_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                   </select>
+               <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                   <div className="flex items-center gap-2">
+                      <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">当前班级</div>
+                      <select 
+                          value={selectedClass} 
+                          onChange={e => setSelectedClass(e.target.value)}
+                          className="border-none bg-slate-50 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:ring-0 outline-none cursor-pointer hover:bg-slate-100"
+                      >
+                          {MOCK_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                   </div>
+
+                   {/* NEW: Course Filter for Teacher Profile */}
+                   {teacherTab === 'profile' && (
+                     <div className="flex items-center gap-2 border-l border-slate-100 pl-4">
+                        <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析课程</div>
+                        <select 
+                            value={selectedProfileCourse} 
+                            onChange={e => setSelectedProfileCourse(e.target.value)}
+                            className="border-none bg-teal-50 rounded-lg px-3 py-1.5 text-xs font-bold text-teal-700 focus:ring-0 outline-none cursor-pointer hover:bg-teal-100 transition-colors"
+                        >
+                            {teacherCourses.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                     </div>
+                   )}
                </div>
            </div>
 
@@ -691,15 +778,14 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                       </div>
                    </div>
 
-                   {/* Configuration Context */}
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-1">
+                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-1 overflow-y-auto custom-scrollbar">
                       <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
                          <Settings size={18} className="text-slate-400"/> 对话数据源配置
                       </h4>
-                      <div className="space-y-4">
+                      <div className="space-y-6">
                          <div>
                             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">分析班级 (多选)</label>
-                            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                            <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
                                {MOCK_CLASSES.map(cls => (
                                   <label key={cls} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
                                      <input 
@@ -718,7 +804,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                          </div>
                          <div>
                             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">数据项 (多选)</label>
-                            <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                            <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2">
                                {['技能点数据', '自动评分结果', '考试/测验成绩', '全过程数据-学习行为', '全过程数据-软件实验', '全过程数据-硬件实验'].map(type => (
                                   <label key={type} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
                                      <input 
@@ -745,7 +831,10 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                       <div className="font-bold text-slate-700 flex items-center gap-2">
                          <Bot size={20} className="text-teal-600"/> 智能分析对话
                       </div>
-                      <button className="text-xs text-slate-400 hover:text-teal-600 flex items-center gap-1">
+                      <button 
+                        onClick={handleClearHistory}
+                        className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors"
+                      >
                          <RefreshCw size={12}/> 清除历史
                       </button>
                    </div>
@@ -785,333 +874,325 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
              </div>
            )}
 
-           {/* 2. Class Profile */}
+           {/* 2. Class Profile (Modified based on User Requirements) */}
            {teacherTab === 'profile' && (
              <div className="space-y-6">
                 
-                {/* 2.0 Course & Exam Dashboard (New Layout) */}
-                {/* Row 1: Charts Only */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Score Distribution Chart */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600"><PieChart size={20}/></div>
-                            <h3 className="font-bold text-slate-800">成绩分布</h3>
+                    {/* Point 1: Interval Distribution - Donut Chart */}
+                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600"><PieChart size={20}/></div>
+                                <h3 className="font-bold text-slate-800">成绩区间分布 (饼图)</h3>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded">课程: {selectedProfileCourse}</span>
                         </div>
-                        <div className="h-[200px]">
+                        <div className="flex-1 h-[280px]">
                             <ResponsiveContainer width="100%" height="100%">
                                 <RechartsPieChart>
                                     <Pie
                                         data={CLASS_COURSE_STATS.distribution}
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius={50}
-                                        outerRadius={70}
+                                        innerRadius={60}
+                                        outerRadius={85}
                                         paddingAngle={5}
                                         dataKey="value"
                                     >
-                                        {CLASS_COURSE_STATS.distribution.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={DIST_COLORS[index % DIST_COLORS.length]} />
+                                        {CLASS_COURSE_STATS.distribution.map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
-                                    <RechartsLegend verticalAlign="bottom" height={36} iconSize={10}/>
-                                    <Tooltip />
+                                    <Tooltip 
+                                        contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'}} 
+                                    />
+                                    <RechartsLegend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
                                 </RechartsPieChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Trend Chart */}
+                    {/* Point 2: Class Score Overview - Bar Chart with Course Context */}
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><TrendingUp size={20}/></div>
-                            <h3 className="font-bold text-slate-800">平均成绩分布趋势</h3>
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-emerald-100 rounded-lg text-emerald-600"><TrendingUp size={20}/></div>
+                                <h3 className="font-bold text-slate-800">班级全员成绩概影 (高→低)</h3>
+                            </div>
+                            <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-1 rounded">课程: {selectedProfileCourse}</span>
                         </div>
-                        <div className="h-[200px]">
+                        <div className="h-[250px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={CLASS_COURSE_STATS.scoreScatter}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
-                                    <XAxis dataKey="studentId" tick={false} axisLine={false}/>
-                                    <YAxis domain={[0, 100]} hide/>
-                                    <Tooltip cursor={{fill: 'transparent'}}/>
-                                    <Line type="monotone" dataKey="avg" stroke="#94a3b8" strokeWidth={2} dot={false} strokeDasharray="5 5" name="班级平均"/>
-                                    <Line type="monotone" dataKey="score" stroke="#0d9488" strokeWidth={0} dot={{r: 3, fill: '#0d9488'}} name="学生成绩"/>
-                                </LineChart>
+                                <RechartsBarChart data={CLASS_COURSE_STATS.scoreRanking} margin={{top: 10, right: 10, left: 0, bottom: 0}}>
+                                    <XAxis dataKey="name" hide />
+                                    <YAxis domain={[0, 100]} hide />
+                                    <Tooltip 
+                                        cursor={{fill: '#f1f5f9'}}
+                                        labelStyle={{display: 'none'}}
+                                        contentStyle={{borderRadius: '8px', fontSize: '12px'}}
+                                    />
+                                    <RechartsBar dataKey="score">
+                                        {CLASS_COURSE_STATS.scoreRanking.map((entry: any, index: number) => (
+                                            <Cell 
+                                                key={`cell-${index}`} 
+                                                fill={entry.score >= 90 ? '#10b981' : entry.score >= 80 ? '#3b82f6' : entry.score >= 60 ? '#f59e0b' : '#ef4444'} 
+                                            />
+                                        ))}
+                                    </RechartsBar>
+                                </RechartsBarChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
-                </div>
-
-                {/* Row 2: Course Info & Exam List */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Course Learning Status (Simplified Info) */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600"><BookOpen size={20}/></div>
-                            <h3 className="font-bold text-slate-800">课程学习情况</h3>
-                        </div>
-                        <div className="flex items-center gap-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
-                            <div className={`w-16 h-16 ${CLASS_COURSE_STATS.currentCourse.cover} rounded-xl flex items-center justify-center shrink-0`}>
-                                <CLASS_COURSE_STATS.currentCourse.icon size={32} className={CLASS_COURSE_STATS.currentCourse.iconColor}/>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <h4 className="font-bold text-slate-800 text-lg mb-1 truncate">{CLASS_COURSE_STATS.currentCourse.name}</h4>
-                                <div className="text-sm text-slate-500">{CLASS_COURSE_STATS.currentCourse.major}</div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-xs text-slate-400 font-bold mb-1">完成进度</div>
-                                <div className="text-2xl font-black text-teal-600">{CLASS_COURSE_STATS.currentCourse.progress}%</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Recent Exams */}
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-orange-100 rounded-lg text-orange-600"><Clock size={20}/></div>
-                            <h3 className="font-bold text-slate-800">近期考试概览</h3>
-                        </div>
-                        <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar max-h-[150px]">
-                            {CLASS_EXAM_LIST.map((exam, i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
-                                    <div>
-                                        <div className="font-bold text-slate-700 text-sm mb-0.5">{exam.name}</div>
-                                        <div className="text-xs text-slate-500 flex items-center gap-2">
-                                            <Calendar size={10}/> {exam.date}
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                            exam.status === '已结束' ? 'bg-green-100 text-green-700' :
-                                            exam.status === '进行中' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200 text-slate-600'
-                                        }`}>
-                                            {exam.status}
-                                        </span>
-                                        {exam.status === '已结束' && (
-                                            <div className="text-xs font-bold text-slate-500 mt-0.5">
-                                                均分: <span className="text-slate-800">{exam.avgScore}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                        <div className="mt-4 flex justify-center gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-emerald-500"></div> 90+</span>
+                            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-blue-500"></div> 80-90</span>
+                            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-orange-500"></div> 60-80</span>
+                            <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-red-500"></div> 60-</span>
                         </div>
                     </div>
                 </div>
 
-                {/* 2. Skill Matrix */}
+                {/* Point 4: Class Skill Heatmap Module (Now showing up to 100 points) */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                      <h3 className="font-bold text-slate-700 flex items-center gap-2">
-                         <Target size={20} className="text-purple-600"/> 班级技能掌握热力图
-                      </h3>
-                      {/* Integrated Course Filter */}
-                      <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-lg">
-                          {uniqueCourses.slice(0, 4).map(c => (
-                              <button
-                                key={c}
-                                onClick={() => setSkillFilter(c)}
-                                className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${
-                                    skillFilter === c ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                                }`}
-                              >
-                                {c}
-                              </button>
-                          ))}
-                      </div>
-                   </div>
-                   
-                   {/* Expanded Heatmap Grid (Assuming mocked data is enough, rendering more items) */}
-                   <div className="flex flex-wrap gap-1.5 max-h-[200px] overflow-y-auto custom-scrollbar">
-                      {LEARNING_SKILLS_FULL.map((skill, i) => ( 
-                         <div 
-                            key={i}
-                            className={`h-8 w-12 rounded flex items-center justify-center text-[10px] font-bold text-white cursor-default shrink-0 ${getScoreColor(skill.score)} ${getSkillOpacity(skill.course)}`}
-                            title={`${skill.name}: ${skill.score}%`}
-                         >
-                            {skill.code}
-                         </div>
-                      ))}
-                   </div>
-                   <div className="flex gap-4 text-xs font-medium text-slate-500 mt-4 justify-end">
-                       <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-500"></div> 优秀</span>
-                       <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-400"></div> 良好</span>
-                       <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-slate-300"></div> 待提升</span>
-                   </div>
-                </div>
-
-                {/* Rankings (Top 5) */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   {/* Difficulty Ranking */}
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                      <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-red-600">
-                         <AlertCircle size={20}/> {t.learning.teacher.profile.difficulty_rank}
-                      </h3>
-                      <div className="space-y-3">
-                         {CLASS_SKILL_RANKING.slice(0, 5).map((item, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-red-50/50 border border-red-100">
-                               <div className="flex items-center gap-3">
-                                  <span className="w-6 h-6 rounded bg-red-200 text-red-700 flex items-center justify-center font-bold text-xs">{i+1}</span>
-                                  <span className="text-sm font-medium text-slate-700">{item.skill}</span>
-                               </div>
-                               <span className="font-bold text-red-600">{item.score}%</span>
+                    <div className="flex justify-between items-center mb-8">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><Map size={20}/></div>
+                            <div>
+                                <h3 className="font-bold text-slate-800">班级技能掌握热力图</h3>
+                                <p className="text-xs text-slate-400 mt-0.5">反映全班学生在各知识点的平均掌握水平 (当前课程: {LEARNING_SKILLS_FULL.filter(s => s.course === selectedProfileCourse).length}个技能点)</p>
                             </div>
-                         ))}
-                      </div>
-                   </div>
+                        </div>
+                        <div className="flex gap-2">
+                             {/* Category indicators */}
+                             <div className="flex gap-3 text-[10px] font-black text-slate-400 uppercase tracking-wider items-center bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-slate-300"></div> 待提升</span>
+                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-blue-400"></div> 良好</span>
+                                <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-green-500"></div> 优秀</span>
+                             </div>
+                        </div>
+                    </div>
 
-                   {/* Student Ranking */}
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                      <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2 text-green-600">
-                         <Award size={20}/> {t.learning.teacher.profile.student_rank}
-                      </h3>
-                      <div className="space-y-3">
-                         {CLASS_STUDENT_RANKING.slice(0, 5).map((item, i) => (
-                            <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-green-50/50 border border-green-100">
-                               <div className="flex items-center gap-3">
-                                  <span className={`w-6 h-6 rounded flex items-center justify-center font-bold text-xs ${i<3 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-200 text-green-700'}`}>{i+1}</span>
-                                  <span className="text-sm font-medium text-slate-700">{item.name}</span>
-                               </div>
-                               <span className="font-bold text-green-600">{item.score}</span>
-                            </div>
-                         ))}
-                      </div>
-                   </div>
-                </div>
-
-                {/* 2.3 Weakness Analysis with Visuals (Updated Layout) */}
-                <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 shadow-sm relative">
-                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-                       <div>
-                           <h3 className="font-bold text-orange-800 mb-4 flex items-center gap-2">
-                              <Lightbulb size={20}/> {t.learning.teacher.profile.weakness_title}
-                           </h3>
-                           <p className="text-orange-900/80 leading-relaxed text-sm font-medium mb-6 bg-white/50 p-6 rounded-xl border border-orange-200/50 shadow-sm">
-                              {t.learning.teacher.profile.weakness_desc}
-                           </p>
-                           <div className="flex flex-wrap gap-2">
-                               <span className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1.5 rounded-lg border border-orange-200">硬件接口</span>
-                               <span className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1.5 rounded-lg border border-orange-200">多线程</span>
-                               <span className="text-xs font-bold text-orange-600 bg-orange-100 px-3 py-1.5 rounded-lg border border-orange-200">通信协议</span>
-                           </div>
-                       </div>
-                       <div className="bg-white rounded-xl p-4 border border-orange-100 flex flex-col h-[350px]">
-                           <div className="text-xs text-center font-bold text-slate-400 mb-2">班级能力 vs 全校平均</div>
-                           <div className="flex-1">
-                               <ResponsiveContainer width="100%" height="100%">
-                                   <RadarChart cx="50%" cy="50%" outerRadius="70%" data={CLASS_WEAKNESS_RADAR}>
-                                       <PolarGrid stroke="#fed7aa" />
-                                       <PolarAngleAxis dataKey="subject" tick={{fontSize: 12, fill: '#9a3412', fontWeight: 'bold'}} />
-                                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                       <Radar name="班级" dataKey="A" stroke="#f97316" strokeWidth={3} fill="#fb923c" fillOpacity={0.5} />
-                                       <Tooltip />
-                                   </RadarChart>
-                               </ResponsiveContainer>
-                           </div>
-                       </div>
-                   </div>
-                </div>
-
-                {/* 2.4 SDT Academic Warning Module (New) */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-red-200">
-                    <h3 className="font-bold text-red-700 mb-6 flex items-center gap-2 text-xl">
-                        <Shield size={24} className="text-red-600"/> 学情预警 (SDT模型分析)
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {SDT_WARNING_STUDENTS.map((student) => (
-                            <div key={student.id} className="border border-red-100 rounded-xl p-4 bg-red-50/30 hover:shadow-md transition-all flex flex-col">
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <img src={student.avatar} alt={student.name} className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200"/>
-                                        <div>
-                                            <div className="font-bold text-slate-800">{student.name}</div>
-                                            <div className="text-xs text-slate-500">{student.id}</div>
-                                        </div>
+                    <div className="flex flex-wrap gap-2">
+                        {LEARNING_SKILLS_FULL.filter(s => s.course === selectedProfileCourse).map((skill, i) => (
+                            <div 
+                                key={i}
+                                className={`group relative h-8 min-w-[3.5rem] px-2 rounded-lg flex items-center justify-center text-[10px] font-black text-white cursor-help transition-all duration-300 hover:scale-110 hover:z-10 shadow-sm ${getScoreColor(skill.score)}`}
+                            >
+                                {skill.code}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-max max-w-[220px] bg-slate-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-white/10">
+                                    <div className="font-black mb-1">{skill.name}</div>
+                                    <div className="text-[10px] text-slate-400 mb-2">{skill.course}</div>
+                                    <div className="flex justify-between items-center bg-white/5 rounded-lg p-2">
+                                        <span className="text-slate-400">全班均值:</span>
+                                        <span className={`font-black text-sm ${skill.score >= 85 ? 'text-green-400' : skill.score >= 60 ? 'text-blue-400' : 'text-slate-300'}`}>
+                                            {skill.score}%
+                                        </span>
                                     </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                        {student.tags.map(tag => (
-                                            <span key={tag} className="text-[10px] font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                                
-                                {/* Mini SDT Radar (Increased Height) */}
-                                <div className="h-56 mb-4 relative">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
-                                            { subject: '自主性', A: student.sdt.autonomy, fullMark: 100 },
-                                            { subject: '能力感', A: student.sdt.competence, fullMark: 100 },
-                                            { subject: '关系性', A: student.sdt.relatedness, fullMark: 100 },
-                                        ]}>
-                                            <PolarGrid stroke="#e2e8f0" />
-                                            <PolarAngleAxis dataKey="subject" tick={{fontSize: 11, fill: '#64748b', fontWeight: 'bold'}} />
-                                            <Radar name="SDT" dataKey="A" stroke="#ef4444" strokeWidth={2} fill="#fca5a5" fillOpacity={0.5} />
-                                            <Tooltip />
-                                        </RadarChart>
-                                    </ResponsiveContainer>
-                                </div>
-
-                                <div className="mt-auto space-y-3">
-                                    <div className="text-xs">
-                                        <span className="font-bold text-slate-700 block mb-1">存在问题:</span>
-                                        <ul className="list-disc pl-4 text-slate-600 space-y-0.5">
-                                            {student.issues.map((issue, i) => <li key={i}>{issue}</li>)}
-                                        </ul>
-                                    </div>
-                                    <div className="bg-white p-2 rounded border border-red-100 text-xs text-red-800 italic">
-                                        <span className="font-bold">改进建议:</span> {student.advice}
-                                    </div>
+                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
                                 </div>
                             </div>
                         ))}
+                        {/* If no skills found for this course in mock */}
+                        {LEARNING_SKILLS_FULL.filter(s => s.course === selectedProfileCourse).length === 0 && (
+                            <div className="w-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                                <Search size={40} className="mx-auto text-slate-300 mb-4" />
+                                <p className="text-slate-400 font-bold">当前课程暂无已录入的班级技能数据</p>
+                            </div>
+                        )}
                     </div>
                 </div>
-             </div>
-           )}
 
-           {/* 3. Class Comparison (Reused Charts) */}
-           {teacherTab === 'compare' && (
-             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Score Distribution */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                   <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                      <BarChart2 size={20} className="text-blue-600"/> {t.learning.teacher.score_dist}
-                   </h3>
-                   <ClassPerformanceChart language={language} />
-                </div>
+                {/* Engagement Analysis */}
+                <div className="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
 
-                {/* Comparison Radar (Mocked reusing student radar for now) */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                   <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                      <Target size={20} className="text-purple-600"/> 班级能力维度对比
-                   </h3>
-                   <div className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={[
-                            { subject: '理论基础', A: 85, B: 75, fullMark: 100 },
-                            { subject: '实操能力', A: 78, B: 82, fullMark: 100 },
-                            { subject: '创新思维', A: 88, B: 70, fullMark: 100 },
-                            { subject: '团队协作', A: 90, B: 85, fullMark: 100 },
-                            { subject: '解决问题', A: 82, B: 78, fullMark: 100 },
-                         ]}>
-                            <PolarGrid stroke="#e2e8f0" />
-                            <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
-                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                            <Radar name="1班" dataKey="A" stroke="#0d9488" strokeWidth={2} fill="#2dd4bf" fillOpacity={0.3} />
-                            <Radar name="2班" dataKey="B" stroke="#f59e0b" strokeWidth={2} fill="#fcd34d" fillOpacity={0.3} />
-                            <Tooltip />
-                            <RechartsLegend />
-                         </RadarChart>
-                      </ResponsiveContainer>
-                   </div>
-                </div>
+                    <div className="relative z-10">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                            <div>
+                                <h3 className="text-2xl font-black flex items-center gap-3 text-white">
+                                    <Activity className="text-teal-400" size={28}/> 班级整体学习参与度分析
+                                </h3>
+                                <p className="text-slate-400 text-sm mt-1">基于全班 34 名学生的加权数据聚合，展示班级整体活跃度趋势</p>
+                            </div>
+                            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center flex items-center gap-4 px-6">
+                                <div className="w-12 h-12 bg-teal-500/20 rounded-full flex items-center justify-center text-teal-400 shadow-inner">
+                                    <Users size={24} />
+                                </div>
+                                <div className="text-left">
+                                    <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Average Engagement</div>
+                                    <div className="text-xl font-black text-white">中高水平</div>
+                                </div>
+                            </div>
+                        </div>
 
-                {/* Trend Analysis */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2">
-                   <h3 className="font-bold text-slate-800 mb-6 flex items-center gap-2">
-                      <TrendingUp size={20} className="text-green-600"/> 班级平均分趋势对比
-                   </h3>
-                   <TrendChart language={language} />
+                        {/* Behavior Averages Section */}
+                        <div className="mb-10">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-px bg-white/10 flex-1"></div>
+                                <span className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">班级平均行为数据</span>
+                                <div className="h-px bg-white/10 flex-1"></div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Aggregated Platform Card */}
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-emerald-500/20"><Layout size={20}/></div>
+                                        <h4 className="font-bold text-emerald-100">平台行为 (均值)</h4>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-y-4 gap-x-4 mb-6">
+                                        {[
+                                            { icon: <LogIn size={12}/>, label: '人均登录', val: CLASS_COURSE_STATS.engagement.platform.avgLogins },
+                                            { icon: <Clock size={12}/>, label: '人均在线', val: CLASS_COURSE_STATS.engagement.platform.avgOnline },
+                                            { icon: <MessageSquare size={12}/>, label: '累计AI问答', val: CLASS_COURSE_STATS.engagement.platform.totalAiQa },
+                                            { icon: <CheckCircle size={12}/>, label: '人均任务完成', val: CLASS_COURSE_STATS.engagement.platform.avgTaskDone }
+                                        ].map((m, i) => (
+                                            <div key={i}>
+                                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold mb-1 uppercase tracking-tight">
+                                                    <span className="text-emerald-500">{m.icon}</span> {m.label}
+                                                </div>
+                                                <div className="text-xl font-black text-white">{m.val}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="h-20 mt-auto">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={MOCK_BEHAVIOR_TRENDS.platform}>
+                                                <defs>
+                                                    <linearGradient id="colorPlatClass" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <Area type="monotone" dataKey="val" stroke="#10b981" fillOpacity={1} fill="url(#colorPlatClass)" strokeWidth={2} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Aggregated Software Card */}
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2 bg-blue-500/20 text-blue-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-blue-500/20"><Monitor size={20}/></div>
+                                        <h4 className="font-bold text-blue-100">软件实验 (人均)</h4>
+                                    </div>
+                                    <div className="space-y-3 mb-6">
+                                        {[
+                                            { icon: <Maximize size={12}/>, label: '环境打开次数', val: `${CLASS_COURSE_STATS.engagement.software.avgEnvOpen}次` },
+                                            { icon: <Timer size={12}/>, label: '运行总时长', val: CLASS_COURSE_STATS.engagement.software.avgRuntime },
+                                            { icon: <Bot size={12}/>, label: 'AI助理提问数', val: `${CLASS_COURSE_STATS.engagement.software.avgAgentQa}次` }
+                                        ].map((m, i) => (
+                                            <div key={i} className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                                    <span className="text-blue-500">{m.icon}</span> {m.label}
+                                                </div>
+                                                <div className="text-sm font-black text-white">{m.val}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="h-20 mt-auto">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={MOCK_BEHAVIOR_TRENDS.software}>
+                                                <defs>
+                                                    <linearGradient id="colorSoftClass" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <Area type="monotone" dataKey="val" stroke="#3b82f6" fillOpacity={1} fill="url(#colorSoftClass)" strokeWidth={2} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Aggregated Hardware Card */}
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 hover:bg-white/10 transition-colors group flex flex-col">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="p-2 bg-purple-500/20 text-purple-400 rounded-xl group-hover:scale-110 transition-transform shadow-inner border border-purple-500/20"><HardDrive size={20}/></div>
+                                        <h4 className="font-bold text-purple-100">硬件实操 (人均)</h4>
+                                    </div>
+                                    <div className="space-y-3 mb-6">
+                                        {[
+                                            { icon: <LogIn size={12}/>, label: '智能体登录', val: `${CLASS_COURSE_STATS.engagement.hardware.avgHardLogin}次` },
+                                            { icon: <Wifi size={12}/>, label: '设备在线时长', val: CLASS_COURSE_STATS.engagement.hardware.avgHardOnline },
+                                            { icon: <MessageSquare size={12}/>, label: '硬件AI对话数', val: `${CLASS_COURSE_STATS.engagement.hardware.avgHardQa}次` }
+                                        ].map((m, i) => (
+                                            <div key={i} className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-tight">
+                                                    <span className="text-purple-500">{m.icon}</span> {m.label}
+                                                </div>
+                                                <div className="text-sm font-black text-white">{m.val}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="h-20 mt-auto">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <AreaChart data={MOCK_BEHAVIOR_TRENDS.hardware}>
+                                                <defs>
+                                                    <linearGradient id="colorHardClass" x1="0" y1="0" x2="0" y2="1">
+                                                        <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                                                        <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
+                                                    </linearGradient>
+                                                </defs>
+                                                <Area type="monotone" dataKey="val" stroke="#a855f7" fillOpacity={1} fill="url(#colorHardClass)" strokeWidth={2} />
+                                            </AreaChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Aggregated Operation Data */}
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="h-px bg-white/10 flex-1"></div>
+                                <span className="text-xs font-black text-slate-500 uppercase tracking-[0.3em]">班级过程操作聚合</span>
+                                <div className="h-px bg-white/10 flex-1"></div>
+                            </div>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="bg-gradient-to-br from-teal-500/20 to-emerald-500/20 border border-teal-500/30 rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
+                                    <div className="w-20 h-20 bg-teal-500/20 rounded-2xl flex items-center justify-center text-teal-400 shadow-xl border border-teal-500/20 shrink-0">
+                                        <Play size={40} />
+                                    </div>
+                                    <div className="flex-1 text-center md:text-left">
+                                        <h4 className="text-xl font-bold text-white mb-2">全班硬件实操均值</h4>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                                    <Clock size={10} className="text-teal-500"/> 人均操作时长
+                                                </div>
+                                                <div className="text-2xl font-black text-teal-400">{CLASS_COURSE_STATS.engagement.ops.avgHardOpTime}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                                    <Power size={10} className="text-teal-500"/> 设备总运行量
+                                                </div>
+                                                <div className="text-2xl font-black text-teal-400">{CLASS_COURSE_STATS.engagement.ops.avgDevOnline}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6">
+                                    <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20">
+                                        <MousePointerClick size={32} />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-white mb-1">软件实操总时长</h4>
+                                        <p className="text-xs text-slate-500">涵盖 2D/3D 虚拟仿真、ThingsBoard 及 Node-Red 环境中的总练习时长。</p>
+                                        <div className="flex gap-6 mt-3">
+                                            <div>
+                                                <div className="text-[10px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1">
+                                                    <Clock size={10} className="text-blue-500"/> 累计实操时长
+                                                </div>
+                                                <div className="text-2xl font-black text-white">{CLASS_COURSE_STATS.engagement.ops.totalSoftTime} 小时</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
              </div>
            )}

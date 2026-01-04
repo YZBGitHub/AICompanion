@@ -52,14 +52,18 @@ export const getRankingData = (lang: Language) => ({
   ]
 });
 
-export const AVATARS = [
-  { id: 1, src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=b6e3f4", label: "M1" },
-  { id: 2, src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&backgroundColor=c0aede", label: "F1" },
-  { id: 3, src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Jude&backgroundColor=ffdfbf", label: "M2" },
-  { id: 4, src: "https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&backgroundColor=ffdfbf", label: "F2" },
-  { id: 5, src: "https://api.dicebear.com/7.x/bottts/svg?seed=Robot1&backgroundColor=e6e6e6", label: "Bot" },
-  { id: 6, src: "https://api.dicebear.com/7.x/notionists/svg?seed=Teacher&backgroundColor=ffeaa7", label: "Pro" }
-];
+// Expanded to 50 avatars using different seeds and styles
+export const AVATARS = Array.from({ length: 50 }, (_, i) => {
+    const seeds = ['Felix', 'Aneka', 'Jude', 'Maria', 'Sasha', 'Leo', 'Mia', 'Zoe', 'Max', 'Luna'];
+    const styles = ['avataaars', 'bottts', 'notionists', 'pixel-art', 'lorelei'];
+    const style = styles[i % styles.length];
+    const seed = seeds[Math.floor(i / styles.length)] + i;
+    return {
+        id: i + 1,
+        src: `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,ffdfbf,e6e6e6,ffeaa7`,
+        label: `Ava ${i + 1}`
+    };
+});
 
 export const AI_PERSONAS = [
   { 
@@ -173,16 +177,43 @@ export const CLASS_COURSE_STATS = {
     progress: 75,
     major: '物联网应用技术'
   },
+  // Point 2: Distribution by Specific Intervals
   distribution: [
-    { name: '优秀', value: 30 },
-    { name: '良好', value: 50 },
-    { name: '待提高', value: 20 },
+    { name: '90分以上', value: 8, color: '#10b981' },
+    { name: '80-90分', value: 15, color: '#3b82f6' },
+    { name: '60-80分', value: 10, color: '#f59e0b' },
+    { name: '60分以下', value: 3, color: '#ef4444' },
   ],
-  scoreScatter: Array.from({length: 30}, (_, i) => ({
-    studentId: i + 1,
-    score: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
-    avg: 78 // Class average
-  }))
+  // Point 1: More intuitive score ranking for class
+  scoreRanking: Array.from({length: 34}, (_, i) => ({
+    name: i === 0 ? '李明' : `学生${i+1}`,
+    score: i === 0 ? 98 : Math.floor(Math.random() * 40) + 58
+  })).sort((a, b) => b.score - a.score),
+  
+  // Class Aggregated Engagement (for Teacher View Point 3)
+  engagement: {
+    platform: {
+        avgLogins: 38,
+        avgOnline: '95h',
+        totalAiQa: '1,240',
+        avgTaskDone: 24
+    },
+    software: {
+        avgEnvOpen: 22,
+        avgRuntime: '38h',
+        avgAgentQa: 85
+    },
+    hardware: {
+        avgHardLogin: 12,
+        avgHardOnline: '10.5h',
+        avgHardQa: 38
+    },
+    ops: {
+        avgHardOpTime: '8h 20m',
+        avgDevOnline: '120h',
+        totalSoftTime: '1,245' // Changed from totalSoftOps to totalSoftTime
+    }
+  }
 };
 
 export const CLASS_EXAM_LIST = [
@@ -230,7 +261,7 @@ export const SDT_WARNING_STUDENTS = [
   }
 ];
 
-// ... (Existing exports: MOCK_TASKS, MOCK_AUTO_SCORE_TASKS, etc. - ensure these are kept)
+// ... (Existing exports: MOCK_TASKS, MOCK_AUTO_SCORE_TASKS, etc.)
 export const MOCK_TASKS = [
   { id: 1, time: '2023-11-28 14:30', course: '《智慧园区》', name: '第二章 单元测试', chapter: '第2章 - 2.1 基础概念', score: 85, duration: '25m', status: '已完成', type: 'task' },
   { id: 2, time: '2023-11-27 09:15', course: '《Python基础》', name: '期中考试', chapter: '第5章 - 5.3 综合应用', score: 92, duration: '45m', status: '已完成', type: 'task' },
@@ -520,21 +551,21 @@ export const LEARNING_SKILLS = [
   { id: 'S002', name: 'RS485接线', course: '《智慧园区》', score: 88, color: 'text-teal-600', bg: 'bg-teal-50' },
   { id: 'S003', name: 'STM32 GPIO控制', course: '《嵌入式开发》', score: 65, color: 'text-orange-600', bg: 'bg-orange-50' },
   { id: 'S004', name: 'I2C通信', course: '《嵌入式开发》', score: 58, color: 'text-orange-600', bg: 'bg-orange-50' },
-  { id: 'S005', name: 'Python函数定义', course: '《Python基础》', score: 98, color: 'text-blue-600', bg: 'bg-blue-50' },
+  { id: 'S005', name: 'Python函数 definition', course: '《Python基础》', score: 98, color: 'text-blue-600', bg: 'bg-blue-50' },
   { id: 'S006', name: '列表与字典操作', course: '《Python基础》', score: 92, color: 'text-blue-600', bg: 'bg-blue-50' },
   { id: 'S007', name: 'TCP/IP握手', course: '《计算机网络》', score: 85, color: 'text-indigo-600', bg: 'bg-indigo-50' },
   { id: 'S008', name: 'VLAN划分', course: '《计算机网络》', score: 72, color: 'text-indigo-600', bg: 'bg-indigo-50' },
 ];
 
 export const LEARNING_SKILLS_FULL = [
-  ...Array.from({length: 50}, (_, i) => ({
+  ...Array.from({length: 100}, (_, i) => ({ // Increased to 100
     code: `A${(i+1).toString().padStart(3, '0')}`,
     name: `智慧园区技能点-${i+1}`,
     course: '《智慧园区》',
     score: Math.random() > 0.4 ? Math.floor(Math.random() * 15) + 85 : Math.floor(Math.random() * 40) + 40,
     color: ''
   })),
-  ...Array.from({length: 50}, (_, i) => ({
+  ...Array.from({length: 100}, (_, i) => ({ // Increased to 100
     code: `B${(i+1).toString().padStart(3, '0')}`,
     name: `嵌入式开发技能-${i+1}`,
     course: '《嵌入式开发》',
@@ -596,7 +627,7 @@ export const JOB_RECOMMENDATIONS = [
     title: 'Python后端开发工程师', 
     match: 88, 
     salary: '15k-25k',
-    reason: '函数定义与数据结构操作熟练，适合往后端服务开发方向发展。',
+    reason: '函数 definition 与数据结构操作熟练，适合往后端服务开发方向发展。',
     matchingSkills: [
         { name: 'Python', score: 98, fullMark: 100 },
         { name: '数据库', score: 82, fullMark: 100 },

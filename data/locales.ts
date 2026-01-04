@@ -23,62 +23,83 @@ const ZH_TEXT = {
   },
   home: {
     hero_title: 'AI学伴 - 全过程技能分析系统',
-    hero_subtitle: 'AI赋能教育，落地AI+教育。AI学伴，你的最佳学习伙伴。',
+    hero_subtitle: '以自我决定理论（SDT）为核心教学理论，通过 AI 支持的教学策略提升学习投入 with 任务完成质量',
+    hero_vision: 'AI 支持 → SDT 心理需求满足 → 学习投入提升',
     stats: {
-      users: '累计用户',
-      answers: '累计回答',
-      dialogs: '累计对话',
-      courses: '累计课程',
+      users: '用户',
+      answers: '回答',
+      dialogs: '对话',
+      courses: '课程',
       media: '智能体'
     },
     sdt: {
-      title: '产品核心理论',
-      subtitle: '全过程数据分析是实证验证AI学伴在职业教育动机理论中作用的关键技术支柱',
-      mechanism_title: '“AI支持 → 心理需求满足 → 学习投入” 动态作用机制',
-      ai_support: 'AI智能支架支持',
+      title: '产品核心理论：自我决定理论 (SDT)',
+      subtitle: '全过程数据分析是实证验证 AI 学伴在职业教育动机理论中作用的关键技术支柱',
+      mechanism_title: '“AI 支持 → 心理需求满足 → 学习投入” 动态作用机制',
+      ai_support: 'AI 智能支架支持',
       ai_desc: '个性化路径 (自主性)\n即时反馈 (能力感)\n私密伴学 (关系性)',
       needs: '心理需求满足 (SDT)',
       needs_desc: '自主性、能力感、关系性的充分满足',
       engagement: '更高水平的学习投入',
       engagement_desc: '行为投入、认知投入、情感投入',
-      data_title: '全过程数据采集与指标映射验证',
-      method_title: '实证分析方法',
-      method_desc: '采用结构方程模型 (SEM) 验证路径关系，结合过程挖掘技术提取学习路径，实现从“学习动机—学习行为—学习结果”的全链条追踪。',
-      table: {
-        type: '数据类型',
-        content: '采集内容',
-        function: '动机理论对应作用',
-        r1_type: '学习行为数据',
-        r1_content: '登录频次、AI对话次数、提示层级调用',
-        r1_func: '反映行为投入水平 & 对AI依赖程度',
-        r2_type: '软件实验过程',
-        r2_content: '错误类型、修正路径、任务完成率',
-        r2_func: '分析操作策略 & 认知投入水平',
-        r3_type: '硬件实操数据',
-        r3_content: '设备连接、调试频次、故障排查路径',
-        r3_func: '客观验证“能力感”的提升',
-        r4_type: '主观心理数据',
-        r4_content: '自主性/能力感/关系性满足问卷',
-        r4_func: '作为SEM模型的核心中介变量'
+      vision_desc: '平台以自我决定理论（SDT）为核心教学理论，通过 AI 支持的教学策略促进学生的自主性、能力感和关系性体验，从而提升学习投入与任务完成质量。',
+      scaffolds: {
+        title: '三类核心 AI 支架实现对心理需求的支持',
+        autonomy: {
+          title: '学习路径与选择支架 (Autonomy)',
+          desc: '提供任务选择、自主调用提示、灵活路径规划，支持学生的学习控制感。'
+        },
+        competence: {
+          title: '即时反馈与任务诊断支架 (Competence)',
+          desc: '提供结构化提示、纠错反馈、过程性引导，帮助学生建立有效的胜任感。'
+        },
+        relatedness: {
+          title: '协作引导与学习情境支架 (Relatedness)',
+          desc: '通过学习过程可视化、同伴协作数据、教师可见性，营造支持性学习氛围。'
+        }
       }
     },
     partners: '合作伙伴',
+    cases_title: '客户案例',
+    cases_desc: '助力 100+ 院校实现数字化教学转型与技能精准分析',
+    case_list: [
+      {
+        school: '深圳职业技术大学',
+        title: '物联网实训云平台',
+        desc: '通过 AI 学伴实现全校 3000+ 学生操作数据无感采集，技能掌握度分析准确率提升 40%。'
+      },
+      {
+        school: '金华职业技术学院',
+        title: '工业互联网实训基地',
+        desc: '集成工业级软硬件数据链路，实现从边缘侧到云端的全过程自动评分与实时诊断。'
+      },
+      {
+        school: '南京信息职业技术学院',
+        title: 'AI 助教深度集成项目',
+        desc: '将 SDT 动机理论模型嵌入教学全流程，学生在线学习投入度提升 25%，任务完成率大幅提高。'
+      },
+      {
+        school: '四川邮电职业技术学院',
+        title: '数字化转型实战基地',
+        desc: '构建基于岗位能力模型的个性化推荐系统，实现“学-练-考-荐”闭环人才培养。'
+      }
+    ],
     architecture: '产品架构',
-    arch_desc: '四层架构体系，从数据采集到应用服务的全链路生态',
+    arch_desc: '四层架构体系，从数据采集到解释设计的全链路生态',
     layers: {
-      l4: { title: '应用服务层', desc: '自主性支持 · 能力感提升 · 关系性构建 (SDT落地)', tags: ['智能问答', '岗位推荐', '心理辅导', '技能认证'] },
-      l3: { title: 'AI核心能力层', desc: '岗位能力模型 · 知识图谱构建 · 综合素质评价', tags: ['技能图谱', '自动评分', '用户画像', '岗位适配算法'] },
+      l4: { title: '应用服务层 (设计与解释层)', desc: '基于 SDT 理论的支架设计 · 动机解释模型 · 行为归因分析', tags: ['智能问答', '岗位推荐', '心理辅导', '技能认证'] },
+      l3: { title: 'AI 核心能力层', desc: '岗位能力模型 · 知识图谱构建 · 综合素质评价', tags: ['技能图谱', '自动评分', '用户画像', '岗位适配算法'] },
       l2: { title: '数据分析层', desc: '多模态数据处理 · 学习行为建模 · 趋势预测', tags: ['行为分析', '情感计算', '学情预测', '过程挖掘'] },
       l1: { title: '数据汇聚层', desc: '全场景数据无感采集 · 软硬件数据互联', tags: ['行为日志', '硬件指令', '代码提交', '测评数据', '物联感知'] },
     }
   },
   intro: {
     title: '平台介绍',
-    subtitle: 'AI驱动的教育数字化转型解决方案',
+    subtitle: 'AI 驱动的教育数字化转型解决方案',
     position: {
       title: '产品定位',
-      main: 'AI驱动的个性化学习与技能成长平台',
-      desc: 'AI学伴系统致力于通过全过程数据采集与人工智能分析，为职业教育提供从"技能评估"到"岗位推荐"的闭环解决方案。我们利用多模态数据分析技术，精准刻画学生画像，辅助教师精准教学，助力学校数字化管理决策。'
+      main: 'AI 驱动的个性化学习与技能成长平台',
+      desc: 'AI 学伴系统致力于通过全过程数据采集与人工智能分析，为职业教育提供从"技能评估"到"岗位推荐"的闭环解决方案。我们利用多模态数据分析技术，精准刻画学生画像，辅助教师精准教学，助力学校数字化管理决策。'
     },
     funcs: {
       title: '核心功能',
@@ -93,132 +114,108 @@ const ZH_TEXT = {
     },
     cases: {
       title: '项目案例',
-      c1_title: '某高职院校数字化教学改革试点',
-      c1_desc: '覆盖全校计算机系3000+名学生，课程完成率提升25%，学生技能掌握度显著提高。',
-      c2_title: '国家级职业教育实训基地',
-      c2_desc: '部署AI学伴系统，实现软硬件实验数据的统一监管与分析，提升实训效果。',
-      c3_title: '区域智慧教育云平台',
-      c3_desc: '服务区域内10所中高职院校，实现师资与课程资源的智能共享，促进教育公平。'
+      c1_title: '某双高职院校物联网虚拟仿真实训平台',
+      c1_desc: '为全校3000余名物联网专业学生提供无感化的操作数据采集与技能实时评估。',
+      c2_title: '国家级工业互联网实训基地',
+      c2_desc: '集成主流工业协议，实现从边缘侧到云端的全链路数据溯源与自动评分。',
+      c3_title: '职教云平台 AI 助教集成项目',
+      c3_desc: '将 AI 学伴深度集成至现有的职教云平台，为异构课程提供通用的技能分析能力。'
     }
   },
   companion: {
-    title: 'AI学伴助手',
-    hello: '首次打开，唤醒AI学伴',
     config: {
-      title: '首次打开，请设置您的专属AI学伴',
-      nickname: 'AI学伴昵称',
+      title: '配置 AI 学伴',
+      nickname: '你的昵称',
+      avatar: '学伴头像',
       personality: '性格设定',
-      role: '角色类型',
-      avatar: '选择形象',
-      p_options: ['知性 (理性客观)', '幽默 (风趣活泼)', '严厉 (严格要求)'],
-      r_options: ['学长 (经验丰富)', '学姐 (耐心细致)', '教师 (权威指导)'],
-      save: '保存并开启AI之旅'
+      p_options: [
+        '知性 (理性客观)', '活泼 (亲切随和)', '严谨 (逻辑缜密)', 
+        '幽默 (风趣乐天)', '高冷 (简洁直接)', '温柔 (体贴入微)', 
+        '博学 (见多识广)', '灵动 (创意无限)', '憨厚 (踏实可靠)', '睿智 (深谋远虑)'
+      ],
+      role: '角色设定',
+      r_options: [
+        '学姐 (耐心细致)', '学长 (富有远见)', '教师 (专业引导)', 
+        '智者 (指引方向)', '探险家 (勇于尝试)', '发明家 (解决困难)', 
+        '领航员 (掌控全局)', '观察员 (客观分析)', '志愿者 (无私奉献)', '记录员 (有条不紊)'
+      ],
+      custom_prompt: '自定义设定提示词',
+      custom_prompt_placeholder: '输入额外的指令来微调学伴的行为 (可选)',
+      save: '保存配置'
     },
     stats: {
-      help_count: '累计打卡/求助',
-      questions: '累计提问',
-      time: '累计询问时长',
-      volume: '累计对话量'
+      help_count: '回答总数',
+      questions: '今日提问',
+      time: '伴学时长',
+      volume: '互动次数'
     },
     paths: {
-      title: '学习路径',
-      courses: '进行中的课程',
-      exams: '待进行的考试',
-      smart_park: '《智慧园区》',
-      embedded: '《嵌入式开发》',
-      python_cert: 'Python一级认证考试',
-      status: { continuing: '继续学习', exam: '进入考试' },
-      start_time: '开始时间',
-      days_left: '天后开始'
-    },
-    feedback: {
-      title: '想对你说',
-      great: '太棒了！',
-      content: '您的互动总次数高达12万次，打败了平台90%的用户！看来你对“智慧园区”AI助手情有独钟，一共累计高达120次互动哦。'
-    },
-    rank: {
-      title: 'AI助手使用排名',
-      skill_assist: '技能助手',
-      hardware: '硬件智能体',
-      software: '软件智能体',
-      col_rank: '排名',
-      col_name: '名称',
-      col_count: '热度'
-    },
-    tasks: {
-      title: '我的任务',
-      t1: '完成 Python 基础测验',
-      t2: '与 AI 助手对话 10 分钟',
-      t3: '阅读《智慧园区》第三章',
-      continue: '继续进行'
+      title: '学习路径规划',
+      courses: '当前课程进度',
+      smart_park: '智慧园区项目',
+      embedded: '嵌入式系统开发',
+      status: {
+        continuing: '继续学习',
+        exam: '去参加考试'
+      },
+      exams: '近期考试安排',
+      days_left: '天后开始',
+      python_cert: 'Python 技能认证',
+      start_time: '开始时间'
     },
     chat: {
-      header: 'AI学伴助手',
-      placeholder: '今天是2025年11月28日星期五，AI学伴陪你的第365天，你的状态越来越好，继续加油哦！',
-      btn_send: '发送'
+      header: 'AI 学伴在线',
+      recent: '最近互动',
+      placeholder: '你可以问我任何关于课程、实验或技能提升的问题'
+    },
+    feedback: {
+      title: '学伴反馈',
+      great: '做得太棒了！',
+      content: '你最近在 Python 算法练习中表现非常出色，正确率达到了 90% 以上。继续保持这份专注，你一定能掌握更多技能！'
+    },
+    tasks: {
+      title: '待办任务',
+      t1: '完成智慧园区第 3 章实验',
+      t2: '提交 Python 列表操作作业',
+      t3: '复习 STM32 中断控制器概念',
+      continue: '去完成'
+    },
+    rank: {
+      title: 'AI助手榜单',
+      skill_assist: '技能助手',
+      software: '软件智能体',
+      hardware: '硬件智能体',
+      col_name: '项目',
+      col_count: '热度'
     }
   },
   skill: {
-    title: '技能分析',
-    userInfo: {
-      school: '学校',
-      major: '专业',
-      class: '班级',
-      name: '姓名',
-      id: '学号',
-      schoolVal: '深圳职业技术大学',
-      majorVal: '物联网应用技术',
-      classVal: '21级物联网1班',
-      nameVal: '李明',
-      idVal: '2021001001'
-    },
-    heatmap: {
-      title: '课程技能热力图',
-      legend: { low: '待提升 (Gray)', med: '良好 (Red)', high: '优秀 (Green)', desc: '掌握度越好颜色越深' },
-      selectCourse: '学习的课程列表',
-      courseName: '课程名称',
-      studyTime: '学习时间',
-      status: '学习状态',
-      mastery: '技能掌握情况',
-      statusOpts: { in_progress: '进行中', completed: '已完成', not_started: '未开始' },
-      tableHeaders: { cat: '技能分类', points: '技能点与掌握度' }
+    formula: {
+      title: '技能掌握度算法',
+      subtitle: '计算公式',
+      example: 'Score = (Course_Progress * 0.3) + (Exp_Quality * 0.4) + (Quiz_Performance * 0.3)',
+      item1: '课程进度',
+      item1_ex: '反映基础知识覆盖面',
+      item2: '实验质量',
+      item2_ex: '基于操作路径与排错能力',
+      item3: '测验表现',
+      item3_ex: '反映知识点掌握深度'
     },
     rank: {
-      courseTitle: '课程掌握排行',
-      skillTitle: '技能掌握排行',
-      school: '校内排名',
-      class: '班级排名',
-      platform: '平台排名',
-      rankCol: '排名',
-      nameCol: '姓名',
-      classCol: '班级',
-      scoreCol: '掌握度'
-    },
-    radar: {
-      title: '技能雷达图',
-      job: '岗位 (物联网安装调试员)',
-      dims: { theory: '物联网理论', install: '设备安装', debug: '设备调试' }
-    },
-    ai: {
-      title: 'AI智能分析和推荐',
-      rec_courses: '推荐学习课程',
-      rec_skills: '推荐提升技能点'
+      courseTitle: '技能掌握排行',
+      school: '全校排行',
+      class: '班级排行',
+      platform: '全平台排行'
     },
     graph: {
-      title: '技能知识图谱',
-      tree: '树形图',
-      network: '网状图'
+      title: '知识图谱导航',
+      tree: '树状视图',
+      network: '网状视图'
     },
-    formula: {
-      title: '技能点计算公式',
-      subtitle: '加权平均',
-      example: '合计: (3+3+5) / (10+10+10) = 37% (对应灰色与红色之间)',
-      item1: '课程任务完成',
-      item1_ex: '10个步骤，完成3个',
-      item2: '习题与测验题目答对',
-      item2_ex: '10题，答对3个',
-      item3: '自动评分-规则满分',
-      item3_ex: '10个，5个满分'
+    ai: {
+      title: 'AI 智能进阶推荐',
+      rec_courses: '推荐课程',
+      rec_skills: '推荐关注技能点'
     }
   },
   learning: {
@@ -228,219 +225,200 @@ const ZH_TEXT = {
       teacher: '教师视图'
     },
     overview: {
-      title: '学情概况',
-      courses: '课程学习情况',
-      exams: '考试/测验情况'
+      title: '概览',
+      courses: '课程状态',
+      exams: '考试/测验状态'
     },
     ai_analysis: {
-      title: 'AI综合分析',
-      persona: '适配形象',
+      title: 'AI 综合画像',
+      persona: '用户画像',
       habits: '学习习惯',
-      features: '学习特点',
-      ability: '综合能力',
-      job_rec: '岗位推荐',
-      reason: '适配理由'
+      features: '行为特征',
+      ability: '核心能力',
+      job_rec: '推荐岗位',
+      reason: '匹配理由'
     },
     skill_analysis: {
-      title: '技能分析',
-      weakness: '技能薄弱点分析',
-      advice: '综合建议'
+      title: '技能掌握度分析',
+      weakness: '薄弱环节分析',
+      advice: '诊断建议'
     },
-    sdt: {
-      title: '基于SDT理论的过程数据分析',
-      summary_title: '近30天全过程数据画像',
-      beh_title: '学习行为数据',
-      soft_title: '软件实验数据',
-      hard_title: '硬件实验数据',
-      autonomy: '自主性 (Autonomy)',
-      competence: '能力感 (Competence)',
-      relatedness: '关系性 (Relatedness)',
-      total_score: 'SDT综合评分',
-      rank: '校内排名'
+    engagement: {
+      title: '学习参与度分析',
+      behavior_data: '学习行为数据',
+      op_data: '学习过程操作数据',
+      platform: '平台行为',
+      software: '软件实验过程',
+      hardware: '硬件实验过程',
+      op_soft: '软件操作',
+      op_hard: '硬件操作',
+      summary: '近30天全过程参与概影',
+      metrics: {
+        logins: '登录次数',
+        online_time: '在线时长',
+        ai_qa: 'AI 提问次数',
+        task_time: '任务学习时长',
+        report_count: '任务提交报告数量',
+        task_done: '任务完成数量',
+        env_open: '实验环境打开次数',
+        runtime: '运行时间',
+        agent_qa: '软件智能体回答次数',
+        sessions: '会话数量',
+        qa_time: '问答时间',
+        hard_login: '硬件智能体登录次数',
+        hard_online: '在线时长',
+        hard_qa: '问答次数',
+        hard_sessions: '会话数量',
+        hard_open: '打开次数',
+        op_time: '硬件操作时间',
+        dev_online: '设备在线时长'
+      }
     },
     teacher: {
       tabs: {
-        assistant: 'AI学情分析助手',
+        assistant: 'AI 教学助手',
         profile: '班级画像',
-        compare: '班级对比'
+        compare: '多维对比'
       },
       ai: {
-        welcome: '你好，张老师，我是您的AI学情分析助手',
-        summary: '你一共创建4个班级，合计34个学生，一共下发《智慧园区》、《嵌入式开发》等3门课程。学生参与程度一般，一共84%完成所有课程任务，平均成绩67分。',
-        chat_placeholder: '请帮我分析一下物联网1班的Python编程掌握情况...'
+        welcome: '您好，张老师。我是您的 AI 教学分析助手。',
+        summary: '当前管理的 4 个班级中，34 名学生整体完成率为 84%，平均分为 67 分。',
+        chat_placeholder: '分析 1 班 Python 课程的掌握情况...'
       },
       profile: {
-        difficulty_rank: '技能点难度排名 (掌握度最低Top10)',
-        student_rank: '学生掌握排名 (Top10)',
-        weakness_title: '班级技能薄弱点分析',
-        weakness_desc: '根据班级整体数据，该班级在“硬件接口调用”与“多线程编程”模块掌握度显著低于平均水平。建议在后续教学中增加针对性的实操案例，特别是GPIO中断控制与线程锁机制的讲解。',
-        select_class: '选择班级',
-        select_course: '选择课程'
+        difficulty_rank: '最难掌握技能点 Top 10',
+        student_rank: '优秀学生排行 Top 10',
+        weakness_title: '班级薄弱项诊断',
+        weakness_desc: '班级整体在硬件接口调用和多线程处理方面得分较低，建议增加相关实操课时。'
       },
-      class_profile: '班级画像',
-      score_dist: '成绩分布',
-      warning: '预警名单',
-      avg_score: '平均分',
-      attendance: '出勤率',
-      interaction: '互动率'
+      score_dist: '成绩分布情况'
     }
   },
   process: {
-    title: '全过程数据',
     nav: {
-       behavior: '学习行为数据',
-       process_behavior: '学习过程行为数据',
-       soft_exp: '软件实验过程数据',
-       hard_exp: '硬件实验过程数据',
-       process_operation: '学习过程操作数据',
-       learning_op: '学习操作数据',
-       soft_op: '软件操作',
-       hard_op: '硬件操作',
-       third_party: '第三方数据',
-       questionnaire: '问卷调查',
-       other_platform: '其他平台数据'
-    },
-    filters: {
-       subCategories: {
-         platform: '平台行为数据',
-         course: '课程任务数据',
-         ai: 'AI助手数据'
-       },
-       // Software Experiment Sub-categories
-       softExpCategories: {
-         env: '软件实验环境',
-         agent: '软件智能体'
-       },
-       // Hardware Experiment Sub-categories
-       hardExpCategories: {
-         interaction: '智能体交互数据',
-         capability: '智能体能力数据'
-       },
-       // Learning Operation Tabs
-       learnOpCategories: {
-         task: '课程任务',
-         ai: '课程AI助手',
-         auto_score: '自动评分',
-         note: '课程笔记'
-       },
-       metric: '统计指标',
-       time_dim: '时间维度',
-       data_dim: '数据维度',
-       metrics_platform: {
-          login: '用户登录次数',
-          online: '平台在线时长',
-          ai_total: '平台AI问答总次数'
-       },
-       metrics_course: {
-          submit: '提交报告数量',
-          total_time: '任务学习总时长',
-          exp_time: '任务-实验实训学习时长',
-          read_time: '任务-图文学习时长',
-          video_time: '任务-视频学习时长',
-          quiz_time: '任务-习题与测试学习时长',
-          complete: '任务-完成数量'
-       },
-       metrics_ai: {
-          qa: '课程技能助手问答次数',
-          duration: '课程技能助手问答时间',
-          session: '课程技能助手会话数量',
-          open: '课程技能助手打开次数'
-       },
-       // Software Experiment Metrics
-       metrics_soft_env: {
-          open_count: '实验环境打开次数',
-          run_time: '实验环境运行时间'
-       },
-       metrics_soft_agent: {
-          qa_count: '软件智能体问答次数',
-          qa_time: '软件智能体问答时间',
-          session_count: '软件智能体会话数量',
-          open_count: '软件智能体打开次数',
-          create_exec: '【创建能力】执行次数',
-          debug_exec: '【排错能力】执行次数'
-       },
-       // Hardware Experiment Metrics
-       metrics_hard_interaction: {
-          login: '硬件智能体登录次数',
-          online: '硬件智能体在线时长',
-          qa_count: '硬件智能体问答次数',
-          qa_time: '硬件智能体问答时间',
-          session: '硬件智能体会话数量',
-          open: '硬件智能体打开次数'
-       },
-       metrics_hard_capability: {
-          query_status: '【查询状态】能力执行次数',
-          query_config: '【查询配置】能力执行次数',
-          config_debug: '【配置排错】能力执行次数',
-          send_control: '【下发控制】能力执行次数'
-       },
-       dims: {
-          school: '按学校',
-          class: '按班级',
-          user: '按用户',
-          course: '按课程'
-       },
-       times: {
-          hour: '时',
-          day: '日',
-          month: '月',
-          year: '年'
-       },
-       start: '开始时间',
-       end: '结束时间'
-    },
-    chart: {
-       table: '表格',
-       bar: '柱状图',
-       line: '折线图'
+      process_behavior: '行为与实验数据',
+      behavior: '学习行为数据',
+      soft_exp: '软件实验过程',
+      hard_exp: '硬件实操数据',
+      process_operation: '学习操作留痕',
+      learning_op: '教学环节操作',
+      soft_op: '软实验操作详情',
+      hard_op: '硬实验操作详情',
+      third_party: '外部数据接入',
+      questionnaire: '问卷量表数据',
+      other_platform: '第三方平台数据'
     },
     detail: {
-       title: '数据详情',
-       q_data: '答题情况数据',
-       ai_data: 'AI问答数据',
-       task_name: '任务名称',
-       q_no: '序号',
-       q_type: '题目类型',
-       q_content: '题目内容',
-       q_duration: '答题时长',
-       q_correct: '正确与否',
-       q_switch: '切换次数',
-       q_skill: '关联技能点',
-       q_score: '习题最终成绩',
-       q_total_time: '该习题总耗时',
-       q_rank: '班级得分排名',
-       q_weak: '掌握较差技能点',
-       ai_qa_content: '问答数据(内容)',
-       ai_total: '提问总次数',
-       ai_words: '提问总字数',
-       ai_avg_words: '提问平均字数',
-       ai_skills: '命中技能点次数',
-       ai_interval: '追问平均间隔',
-       ai_sessions: '对话总次数',
-       accuracy: '正确率',
-       ai_sat: '回答满意度',
-       last_interact: '最近交互时间',
-       total_interact: '累计交互次数',
-       ai_name: 'AI助手名称',
-       sim_project: '仿真工程文件',
-       sim_history: '操作过程记录',
-       sim_stats: '操作行为统计',
-       sim_agent: '仿真智能体数据',
-       // Auto Score Labels
-       as_rule: '评分规则名称',
-       as_scene: '评分场景',
-       as_env: '实验环境',
-       as_score: '分数',
-       as_result: '结果',
-       as_skill: '关联技能点',
-       as_reason: '错误原因',
-       total_score: '总得分'
+      title: '数据详情记录',
+      ai_total: '对话总数',
+      ai_words: '总字数',
+      ai_avg_words: '平均每条字数',
+      ai_interval: '平均问答间隔',
+      ai_sessions: '会话次数',
+      ai_sat: 'AI 满意度',
+      ai_qa_content: '具体问答内容',
+      sim_project: '仿真工程',
+      sim_stats: '操作统计',
+      sim_history: '历史操作列表',
+      total_score: '最终得分',
+      accuracy: '得分率',
+      q_no: '序号',
+      as_rule: '评分规则',
+      as_scene: '应用场景',
+      as_env: '所属环境',
+      as_score: '得分',
+      as_result: '判定',
+      as_skill: '关联技能点',
+      q_data: '答题数据',
+      q_score: '本节得分',
+      q_type: '题型',
+      q_content: '内容',
+      q_correct: '结果',
+      q_duration: '耗时',
+      q_switch: '切屏次数',
+      q_skill: '考察技能',
+      ai_name: '智能体名称',
+      last_interact: '最近交互时间',
+      total_interact: '交互总次数'
+    },
+    filters: {
+      learnOpCategories: {
+        task: '单元任务',
+        ai: '课程AI问答',
+        auto_score: '自动评分',
+        note: '课程笔记'
+      },
+      subCategories: {
+        platform: '平台基础行为',
+        course: '课程学习行为',
+        ai: 'AI 互动行为'
+      },
+      softExpCategories: {
+        env: '实验环境活跃',
+        agent: '仿真助手交互'
+      },
+      hardExpCategories: {
+        interaction: '硬件登录交互',
+        capability: '设备控制能力'
+      },
+      metric: '统计指标',
+      metrics_platform: {
+        login: '登录次数',
+        online_time: '在线时长',
+        page_view: '页面访问量'
+      },
+      metrics_course: {
+        submit: '提交次数',
+        video_time: '视频观看时长',
+        resource_download: '资源下载数'
+      },
+      metrics_ai: {
+        qa: '问答次数',
+        token: 'Token 消耗量',
+        duration: '对话时长'
+      },
+      metrics_soft_env: {
+        open_count: '环境打开次数',
+        runtime: '运行总时长',
+        error_count: '报错次数'
+      },
+      metrics_soft_agent: {
+        qa_count: '助手提问数',
+        solve_rate: '问题解决率'
+      },
+      metrics_hard_interaction: {
+        login: '智能体登录次数',
+        online: '在线时长',
+        command_count: '指令发送数'
+      },
+      metrics_hard_capability: {
+        query_status: '状态查询成功率',
+        control_exec: '控制指令执行率'
+      },
+      data_dim: '数据维度',
+      dims: {
+        school: '学校',
+        class: '班级',
+        user: '学生个人',
+        course: '课程'
+      },
+      time_dim: '时间颗粒度',
+      times: {
+        hour: '按小时',
+        day: '按天',
+        month: '按月',
+        year: '按年'
+      }
+    },
+    chart: {
+      bar: '柱状图',
+      line: '折线图',
+      table: '表格'
     }
   }
 };
 
 const EN_TEXT = {
-  // ... (Keep existing EN TEXT if not modified) ...
   nav: {
     home: 'Home',
     intro: 'Platform Intro',
@@ -460,6 +438,135 @@ const EN_TEXT = {
     subtitle: 'Whole-Process Skill Analysis',
     footer: '© 2024 AI Companion System. All rights reserved.'
   },
+  home: {
+    hero_title: 'AI Companion - Skill Analysis System',
+    hero_subtitle: 'Based on Self-Determination Theory (SDT) as core teaching theory, driving engagement via AI scaffolds',
+    hero_vision: 'AI Support → SDT Satisfaction → Engagement Increase',
+    stats: {
+      users: 'Users',
+      answers: 'Answers',
+      dialogs: 'Dialogs',
+      courses: 'Courses',
+      media: 'Agents'
+    },
+    sdt: ZH_TEXT.home.sdt,
+    partners: 'Partners',
+    cases_title: 'Customer Cases',
+    cases_desc: 'Helping 100+ institutions achieve digital transformation.',
+    case_list: ZH_TEXT.home.case_list,
+    architecture: 'Architecture',
+    arch_desc: 'Four-layer architecture from data collection to interpretation & design',
+    layers: ZH_TEXT.home.layers
+  },
+  intro: {
+    title: 'Platform Intro',
+    subtitle: 'AI-driven educational digital transformation solutions',
+    position: {
+      title: 'Product Positioning',
+      main: 'AI-driven personalized learning and skill growth platform',
+      desc: 'Committed to providing a closed-loop solution from "skill assessment" to "job recommendation".'
+    },
+    funcs: {
+      title: 'Core Functions',
+      graph: 'Skill Graph',
+      graph_desc: 'Dynamic graph based on knowledge points.',
+      scoring: 'Auto-Grading',
+      scoring_desc: 'Intelligent correction for code and reports.',
+      analysis: 'Deep Learning Analysis',
+      analysis_desc: 'Multi-dimensional student profiling.',
+      process: 'Process Data Collection',
+      process_desc: 'Seamless data collection from experiments.'
+    },
+    cases: ZH_TEXT.intro.cases
+  },
+  companion: {
+    config: {
+      title: 'Configure AI Companion',
+      nickname: 'Nickname',
+      avatar: 'Avatar',
+      personality: 'Personality',
+      p_options: ZH_TEXT.companion.config.p_options,
+      role: 'Role',
+      r_options: ZH_TEXT.companion.config.r_options,
+      custom_prompt: 'Custom Prompt',
+      custom_prompt_placeholder: 'Input extra instructions to fine-tune AI behavior (Optional)',
+      save: 'Save'
+    },
+    stats: {
+      help_count: 'Answers',
+      questions: 'Today\'s Questions',
+      time: 'Duration',
+      volume: 'Interactions'
+    },
+    paths: {
+      title: 'Learning Path',
+      courses: 'Courses',
+      smart_park: 'Smart Park',
+      embedded: 'Embedded Dev',
+      status: {
+        continuing: 'Continue',
+        exam: 'Go to Exam'
+      },
+      exams: 'Recent Exams',
+      days_left: 'days left',
+      python_cert: 'Python Cert',
+      start_time: 'Start',
+    },
+    chat: {
+      header: 'AI Companion Online',
+      recent: 'Recent',
+      placeholder: 'Ask me anything about your learning...'
+    },
+    feedback: {
+      title: 'Feedback',
+      great: 'Great Job!',
+      content: 'You performed exceptionally well in recent Python tasks.'
+    },
+    tasks: {
+      title: 'Pending Tasks',
+      t1: 'Finish Smart Park Exp',
+      t2: 'Submit Python HW',
+      t3: 'Review STM32 Concepts',
+      continue: 'Start'
+    },
+    rank: {
+      title: 'AI Assistant Leaderboard',
+      skill_assist: 'Skill Assistant',
+      software: 'Software Agent',
+      hardware: 'Hardware Agent',
+      col_name: 'Item',
+      col_count: 'Heat'
+    }
+  },
+  skill: {
+    formula: {
+      title: 'Skill Mastery Algorithm',
+      subtitle: 'Formula',
+      example: 'Score = (Progress * 0.3) + (Exp * 0.4) + (Quiz * 0.3)',
+      item1: 'Progress',
+      item1_ex: 'Foundation coverage',
+      item2: 'Experiment',
+      item2_ex: 'Path & Debugging',
+      item3: 'Quiz',
+      item3_ex: 'Knowledge depth'
+    },
+    rank: {
+      courseTitle: 'Mastery Rank',
+      school: 'School',
+      class: 'Class',
+      platform: 'Platform'
+    },
+    graph: {
+      title: 'Knowledge Graph',
+      tree: 'Tree View',
+      network: 'Network View'
+    },
+    ai: {
+      title: 'AI Recommendations',
+      rec_courses: 'Courses',
+      rec_skills: 'Skills'
+    }
+  },
   learning: {
     title: 'Learning Analysis',
     views: {
@@ -468,11 +575,11 @@ const EN_TEXT = {
     },
     overview: {
       title: 'Overview',
-      courses: 'Course Status',
-      exams: 'Exam/Quiz Status'
+      courses: 'Courses',
+      exams: 'Exams'
     },
     ai_analysis: {
-      title: 'AI Comprehensive Analysis',
+      title: 'AI Analysis',
       persona: 'Persona',
       habits: 'Habits',
       features: 'Features',
@@ -482,20 +589,39 @@ const EN_TEXT = {
     },
     skill_analysis: {
       title: 'Skill Analysis',
-      weakness: 'Weakness Analysis',
-      advice: 'Suggestion'
+      weakness: 'Weakness',
+      advice: 'Advice'
     },
-    sdt: {
-      title: 'SDT-Based Process Analysis',
-      summary_title: '30-Day Process Data Profile',
-      beh_title: 'Learning Behavior',
-      soft_title: 'Software Experiment',
-      hard_title: 'Hardware Experiment',
-      autonomy: 'Autonomy',
-      competence: 'Competence',
-      relatedness: 'Relatedness',
-      total_score: 'Total Score',
-      rank: 'Rank'
+    engagement: {
+      title: 'Learning Engagement Analysis',
+      behavior_data: 'Behavior Data',
+      op_data: 'Process Operation Data',
+      platform: 'Platform Behavior',
+      software: 'Software Exp',
+      hardware: 'Hardware Exp',
+      op_soft: 'Software Ops',
+      op_hard: 'Hardware Ops',
+      summary: '30-Day engagement profile',
+      metrics: {
+        logins: 'Logins',
+        online_time: 'Online Time',
+        ai_qa: 'AI Questions',
+        task_time: 'Task Study Time',
+        report_count: 'Reports',
+        task_done: 'Tasks Completed',
+        env_open: 'Env Opens',
+        runtime: 'Runtime',
+        agent_qa: 'Agent Answers',
+        sessions: 'Sessions',
+        qa_time: 'Q&A Time',
+        hard_login: 'Logins',
+        hard_online: 'Online',
+        hard_qa: 'Questions',
+        hard_sessions: 'Sessions',
+        hard_open: 'Opens',
+        op_time: 'Hardware Op Time',
+        dev_online: 'Device Online'
+      }
     },
     teacher: {
       tabs: {
@@ -504,35 +630,18 @@ const EN_TEXT = {
         compare: 'Comparison'
       },
       ai: {
-        welcome: 'Hello, Teacher Zhang. I am your AI Learning Analysis Assistant.',
-        summary: 'You have created 4 classes with 34 students total. 84% completion rate. Avg Score: 67.',
-        chat_placeholder: 'Analyze Python mastery for IoT Class 1...'
+        welcome: 'Hello, Teacher Zhang.',
+        summary: '84% completion rate. Avg Score: 67.',
+        chat_placeholder: 'Analyze class status...'
       },
       profile: {
-        difficulty_rank: 'Hardest Skills (Top 10)',
-        student_rank: 'Top Students (Top 10)',
-        weakness_title: 'Class Weakness Analysis',
-        weakness_desc: 'Students struggle with Hardware Interface and Threading. Suggest more practice.',
-        select_class: 'Select Class',
-        select_course: 'Select Course'
+        difficulty_rank: 'Hardest Skills',
+        student_rank: 'Top Students',
+        weakness_title: 'Weakness Analysis',
+        weakness_desc: 'Struggles with threading and hardware.'
       },
-      class_profile: 'Class Profile',
-      score_dist: 'Score Dist',
-      warning: 'Warning List',
-      avg_score: 'Avg Score',
-      attendance: 'Attendance',
-      interaction: 'Interaction'
+      score_dist: 'Score Dist'
     }
-  },
-  home: ZH_TEXT.home,
-  intro: ZH_TEXT.intro,
-  companion: ZH_TEXT.companion,
-  skill: {
-      ...ZH_TEXT.skill,
-      rank: {
-          ...ZH_TEXT.skill.rank,
-          platform: 'Platform Rank'
-      }
   },
   process: ZH_TEXT.process
 };

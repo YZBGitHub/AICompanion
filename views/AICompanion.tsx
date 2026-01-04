@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Zap, CheckCircle, MessageSquare, Clock, Activity, Settings, Compass, Building2, Cpu, Award, Brain, AlertCircle, Share2, ThumbsUp, Star, Calendar, Flame, Code, User, GraduationCap } from 'lucide-react';
+import { Zap, CheckCircle, MessageSquare, Clock, Activity, Settings, Compass, Building2, Cpu, Award, Brain, AlertCircle, Share2, ThumbsUp, Star, Calendar, Flame, Code, User, GraduationCap, X } from 'lucide-react';
 import { Language } from '../types';
 import { TEXT, AVATARS } from '../constants';
 
@@ -11,7 +11,8 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
     nickname: 'User123', 
     personality: '知性 (理性客观)', 
     role: '学姐 (耐心细致)',
-    avatar: AVATARS[1].src 
+    avatar: AVATARS[0].src,
+    customPrompt: ''
   });
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<{sender: 'user'|'ai', text: string}[]>([]);
@@ -74,14 +75,17 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
       {/* Settings Modal */}
       {showConfigModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
-              <div className="bg-teal-600 p-6 text-white text-center shrink-0">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh]">
+              <div className="bg-teal-600 p-6 text-white text-center shrink-0 relative">
+                <button onClick={() => setShowConfigModal(false)} className="absolute top-4 right-4 hover:bg-white/20 p-1 rounded-full transition-colors">
+                  <X size={24} />
+                </button>
                 <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Zap size={32} />
                 </div>
                 <h3 className="text-xl font-bold">{t.companion.config.title}</h3>
               </div>
-              <div className="p-8 space-y-6 overflow-y-auto">
+              <div className="p-8 space-y-6 overflow-y-auto custom-scrollbar">
                 <div>
                   <label className="text-sm font-medium text-slate-700 block mb-2">{t.companion.config.nickname}</label>
                   <input 
@@ -91,17 +95,17 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
                     className="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2 text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
                   />
                 </div>
-                {/* Avatar Selection */}
+                {/* Avatar Selection - Expanded Grid */}
                 <div>
-                  <label className="text-sm font-medium text-slate-700 block mb-2">{t.companion.config.avatar}</label>
-                  <div className="grid grid-cols-6 gap-2">
+                  <label className="text-sm font-medium text-slate-700 block mb-2">{t.companion.config.avatar} (50个可选)</label>
+                  <div className="grid grid-cols-5 sm:grid-cols-10 gap-3 max-h-[200px] overflow-y-auto p-2 border border-slate-100 rounded-xl custom-scrollbar">
                       {AVATARS.map(ava => (
                         <div 
                           key={ava.id} 
                           onClick={() => setCompanionConfig({...companionConfig, avatar: ava.src})}
-                          className={`cursor-pointer rounded-full p-1 border-2 transition-all ${companionConfig.avatar === ava.src ? 'border-teal-500 scale-110 shadow-md' : 'border-transparent hover:border-slate-200'}`}
+                          className={`cursor-pointer rounded-xl p-1 border-2 transition-all ${companionConfig.avatar === ava.src ? 'border-teal-500 scale-110 shadow-md bg-teal-50' : 'border-transparent hover:border-slate-200'}`}
                         >
-                          <img src={ava.src} alt={ava.label} className="w-full h-full rounded-full bg-slate-100" />
+                          <img src={ava.src} alt={ava.label} className="w-full h-full rounded-lg bg-white" />
                         </div>
                       ))}
                   </div>
@@ -128,9 +132,29 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
                       </select>
                     </div>
                 </div>
+
+                {/* Custom System Prompt - New Section */}
+                <div>
+                   <div className="flex justify-between items-center mb-2">
+                     <label className="text-sm font-medium text-slate-700 block">
+                       {t.companion.config.custom_prompt} <span className="text-slate-400 font-normal ml-1">(可选)</span>
+                     </label>
+                     <span className={`text-[10px] font-bold ${companionConfig.customPrompt.length >= 100 ? 'text-red-500' : 'text-slate-400'}`}>
+                        {companionConfig.customPrompt.length} / 100
+                     </span>
+                   </div>
+                   <textarea 
+                     value={companionConfig.customPrompt}
+                     onChange={e => setCompanionConfig({...companionConfig, customPrompt: e.target.value.substring(0, 100)})}
+                     placeholder={t.companion.config.custom_prompt_placeholder}
+                     rows={3}
+                     className="w-full bg-slate-50 border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none resize-none transition-all"
+                   />
+                </div>
+
                 <button 
                   onClick={() => setShowConfigModal(false)}
-                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-lg shadow-lg shadow-teal-500/30 transition-all transform hover:-translate-y-0.5"
+                  className="w-full bg-teal-600 hover:bg-teal-700 text-white font-black py-4 rounded-xl shadow-lg shadow-teal-500/30 transition-all transform hover:-translate-y-0.5"
                 >
                   {t.companion.config.save}
                 </button>
@@ -145,7 +169,7 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
             { label: t.companion.stats.help_count, val: '120', color: 'text-blue-600', icon: <CheckCircle className="text-blue-600 opacity-20" size={48} /> },
             { label: t.companion.stats.questions, val: '45', color: 'text-purple-600', icon: <MessageSquare className="text-purple-600 opacity-20" size={48} /> },
             { label: t.companion.stats.time, val: '12h', color: 'text-orange-600', icon: <Clock className="text-orange-600 opacity-20" size={48} /> },
-            { label: t.companion.stats.volume, val: '3.4k', color: 'text-teal-600', icon: <Activity className="text-teal-600 opacity-20" size={48} /> },
+            { label: t.companion.stats.volume, val: '450', color: 'text-teal-600', icon: <Activity className="text-teal-600 opacity-20" size={48} /> },
           ].map((s, i) => (
             <div key={i} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative overflow-hidden group hover:shadow-md transition-shadow">
               <div className="relative z-10">
@@ -259,7 +283,7 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
         {/* Center Column (6/12): Chat Interface */}
         <div className="lg:col-span-6 h-[600px] lg:h-auto flex flex-col">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col h-full overflow-hidden relative">
-            {/* Header */}
+            {/* Header - Updated with Recent Time instead of icon */}
             <div className="p-4 border-b border-slate-100 bg-white/90 backdrop-blur-sm flex justify-between items-center z-10 sticky top-0">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center text-teal-600 border border-teal-200">
@@ -276,9 +300,12 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
                     <div className="text-xs text-slate-500">{companionConfig.role.split(' ')[0]} - {companionConfig.personality.split(' ')[0]}</div>
                   </div>
                 </div>
-                <button onClick={() => setShowConfigModal(true)} className="text-slate-400 hover:text-teal-600 transition-colors bg-slate-50 p-2 rounded-full hover:bg-teal-50">
-                  <AlertCircle size={20}/>
-                </button>
+                <div className="flex flex-col items-end">
+                   <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-0.5">{t.companion.chat.recent}</div>
+                   <div className="text-xs text-slate-600 font-mono flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                      <Clock size={12} className="text-teal-500"/> {new Date().getHours().toString().padStart(2, '0')}:{new Date().getMinutes().toString().padStart(2, '0')}
+                   </div>
+                </div>
             </div>
             
             {/* Chat Area with Anthropomorphic Background */}
@@ -458,4 +485,3 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
 };
 
 export default AICompanion;
-    

@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { UserRole, ViewState, Language } from './types';
 import Navbar from './components/Navbar';
 import Home from './views/Home';
-import PlatformIntro from './views/PlatformIntro';
 import AICompanion from './views/AICompanion';
 import SkillAnalysis from './views/SkillAnalysis';
 import LearningAnalysis from './views/LearningAnalysis';
@@ -40,9 +39,6 @@ const App: React.FC = () => {
       <main className="flex-1">
         {currentView === ViewState.HOME && (
           <Home language={language} currentRole={currentRole} onRoleChange={handleRoleChange} />
-        )}
-        {currentView === ViewState.PLATFORM_INTRO && (
-          <PlatformIntro language={language} />
         )}
         {currentView === ViewState.AI_COMPANION && (
           <AICompanion language={language} />

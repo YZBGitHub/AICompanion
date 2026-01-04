@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { Monitor, X, User, GraduationCap, BookOpen, Users, Map, Info, ArrowUp, Award, Target, Share, GitGraph, GitMerge, Maximize2, Minimize2, Brain, Flame, Building2, Cpu, Code } from 'lucide-react';
 import { UserRole, Language } from '../types';
@@ -174,8 +173,8 @@ const SkillAnalysis: React.FC<SkillAnalysisProps> = ({ language, currentRole }) 
           
           {(currentRole !== UserRole.TEACHER && currentRole !== UserRole.ADMIN) && (
             <div className="text-right hidden sm:block">
-              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">综合绩点 (GPA)</div>
-              <div className="text-3xl font-bold text-teal-600">3.8</div>
+              <div className="text-xs text-slate-400 uppercase tracking-wider mb-1">技能掌握率</div>
+              <div className="text-3xl font-bold text-teal-600">88%</div>
             </div>
           )}
        </div>

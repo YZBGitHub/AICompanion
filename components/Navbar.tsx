@@ -27,9 +27,8 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const t = TEXT[language];
 
-  // --- Navigation Logic based on PDF Page 1 ---
   const getNavItems = () => {
-    const common = [{ label: t.nav.home, view: ViewState.HOME }, { label: t.nav.intro, view: ViewState.PLATFORM_INTRO }];
+    const common = [{ label: t.nav.home, view: ViewState.HOME }];
     
     switch (currentRole) {
       case UserRole.VISITOR:
@@ -153,4 +152,3 @@ const Navbar: React.FC<NavbarProps> = ({
 };
 
 export default Navbar;
-    
