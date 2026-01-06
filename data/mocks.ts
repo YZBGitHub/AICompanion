@@ -1,6 +1,6 @@
 
 import { Language, SkillGraphData } from '../types';
-import { Building2, Cpu, Code, Network } from 'lucide-react';
+import { Building2, Cpu, Code, Network } from 'lucide-vue-next';
 
 export const getMockSkillData = (lang: Language): SkillGraphData => ({
   nodes: [
@@ -54,47 +54,47 @@ export const getRankingData = (lang: Language) => ({
 
 // Expanded to 50 avatars using different seeds and styles
 export const AVATARS = Array.from({ length: 50 }, (_, i) => {
-    const seeds = ['Felix', 'Aneka', 'Jude', 'Maria', 'Sasha', 'Leo', 'Mia', 'Zoe', 'Max', 'Luna'];
-    const styles = ['avataaars', 'bottts', 'notionists', 'pixel-art', 'lorelei'];
-    const style = styles[i % styles.length];
-    const seed = seeds[Math.floor(i / styles.length)] + i;
-    return {
-        id: i + 1,
-        src: `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,ffdfbf,e6e6e6,ffeaa7`,
-        label: `Ava ${i + 1}`
-    };
+  const seeds = ['Felix', 'Aneka', 'Jude', 'Maria', 'Sasha', 'Leo', 'Mia', 'Zoe', 'Max', 'Luna'];
+  const styles = ['avataaars', 'bottts', 'notionists', 'pixel-art', 'lorelei'];
+  const style = styles[i % styles.length];
+  const seed = seeds[Math.floor(i / styles.length)] + i;
+  return {
+    id: i + 1,
+    src: `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundColor=b6e3f4,c0aede,ffdfbf,e6e6e6,ffeaa7`,
+    label: `Ava ${i + 1}`
+  };
 });
 
 export const AI_PERSONAS = [
-  { 
-    id: 'geek', 
-    name: '极客少年', 
-    desc: '对代码和硬件有着近乎狂热的追求，深夜是你的主场。', 
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&glasses=round&clothing=hoodie', 
+  {
+    id: 'geek',
+    name: '极客少年',
+    desc: '对代码和硬件有着近乎狂热的追求，深夜是你的主场。',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&glasses=round&clothing=hoodie',
     color: 'bg-blue-500',
-    tags: ['代码控', '夜猫子', '逻辑鬼才'] 
+    tags: ['代码控', '夜猫子', '逻辑鬼才']
   },
-  { 
-    id: 'social', 
-    name: '社牛领袖', 
-    desc: '不仅技术过硬，更是团队的粘合剂，哪里有你哪里就有欢笑。', 
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&smile=laughing', 
+  {
+    id: 'social',
+    name: '社牛领袖',
+    desc: '不仅技术过硬，更是团队的粘合剂，哪里有你哪里就有欢笑。',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka&smile=laughing',
     color: 'bg-pink-500',
-    tags: ['沟通达人', '气氛组', '协作强'] 
+    tags: ['沟通达人', '气氛组', '协作强']
   },
-  { 
-    id: 'master', 
-    name: '实操大神', 
-    desc: '与其纸上谈兵，不如动手一试。你的手就是最好的精密仪器。', 
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jude&facialHair=beard', 
+  {
+    id: 'master',
+    name: '实操大神',
+    desc: '与其纸上谈兵，不如动手一试。你的手就是最好的精密仪器。',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jude&facialHair=beard',
     color: 'bg-orange-500',
     tags: ['动手能力MAX', '工匠精神', '效率高']
   },
-  { 
-    id: 'explorer', 
-    name: '科技探险家', 
-    desc: '对新技术永远保持好奇，勇于尝试未知的领域。', 
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&accessories=sunglasses', 
+  {
+    id: 'explorer',
+    name: '科技探险家',
+    desc: '对新技术永远保持好奇，勇于尝试未知的领域。',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria&accessories=sunglasses',
     color: 'bg-purple-500',
     tags: ['好奇心', '创新', '先锋']
   }
@@ -109,20 +109,20 @@ export const SDT_METRICS = {
 
 export const MOCK_PROCESS_SUMMARY = {
   behavior: {
-    logins: 45,        
+    logins: 45,
     onlineTime: '120h',
-    aiQaCount: 350     
+    aiQaCount: 350
   },
   softExp: {
-    openCount: 28,     
-    runTime: '45h'     
+    openCount: 28,
+    runTime: '45h'
   },
   hardExp: {
-    loginCount: 15,    
-    onlineTime: '12h', 
-    qaTime: '45m',     
-    sessionCount: 22,  
-    openCount: 18      
+    loginCount: 15,
+    onlineTime: '12h',
+    qaTime: '45m',
+    sessionCount: 22,
+    openCount: 18
   }
 };
 
@@ -185,33 +185,33 @@ export const CLASS_COURSE_STATS = {
     { name: '60分以下', value: 3, color: '#ef4444' },
   ],
   // Point 1: More intuitive score ranking for class
-  scoreRanking: Array.from({length: 34}, (_, i) => ({
-    name: i === 0 ? '李明' : `学生${i+1}`,
+  scoreRanking: Array.from({ length: 34 }, (_, i) => ({
+    name: i === 0 ? '李明' : `学生${i + 1}`,
     score: i === 0 ? 98 : Math.floor(Math.random() * 40) + 58
   })).sort((a, b) => b.score - a.score),
-  
+
   // Class Aggregated Engagement (for Teacher View Point 3)
   engagement: {
     platform: {
-        avgLogins: 38,
-        avgOnline: '95h',
-        totalAiQa: '1,240',
-        avgTaskDone: 24
+      avgLogins: 38,
+      avgOnline: '95h',
+      totalAiQa: '1,240',
+      avgTaskDone: 24
     },
     software: {
-        avgEnvOpen: 22,
-        avgRuntime: '38h',
-        avgAgentQa: 85
+      avgEnvOpen: 22,
+      avgRuntime: '38h',
+      avgAgentQa: 85
     },
     hardware: {
-        avgHardLogin: 12,
-        avgHardOnline: '10.5h',
-        avgHardQa: 38
+      avgHardLogin: 12,
+      avgHardOnline: '10.5h',
+      avgHardQa: 38
     },
     ops: {
-        avgHardOpTime: '8h 20m',
-        avgDevOnline: '120h',
-        totalSoftTime: '1,245' // Changed from totalSoftOps to totalSoftTime
+      avgHardOpTime: '8h 20m',
+      avgDevOnline: '120h',
+      totalSoftTime: '1,245' // Changed from totalSoftOps to totalSoftTime
     }
   }
 };
@@ -232,18 +232,18 @@ export const CLASS_WEAKNESS_RADAR = [
 ];
 
 export const SDT_WARNING_STUDENTS = [
-  { 
-    id: '2021001003', 
-    name: '王芳', 
+  {
+    id: '2021001003',
+    name: '王芳',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Maria',
     tags: ['积极性差', '成绩下滑'],
     sdt: { autonomy: 55, competence: 60, relatedness: 70 },
     issues: ['近7天未登录平台', '硬件实验时长不足2小时', '未提交期中作业'],
     advice: '建议安排线下谈话，了解是否遇到设备困难；推荐其先完成《基础入门》章节重建信心。'
   },
-  { 
-    id: '2021001005', 
-    name: '刘洋', 
+  {
+    id: '2021001005',
+    name: '刘洋',
     avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
     tags: ['互动缺失', '实操困难'],
     sdt: { autonomy: 70, competence: 50, relatedness: 40 },
@@ -302,30 +302,30 @@ export const MOCK_NOTE_DETAILS = {
 };
 
 export const MOCK_AUTO_SCORE_DETAILS = [
-   { rule: '设备连接完整性', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '网络拓扑构建' },
-   { rule: '传感器配置参数', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '设备参数配置' },
-   { rule: '网关IP设置', scene: '软件实验', env: 'ThingsBoard', score: 0, result: false, reason: 'IP地址不在同一网段', skill: '网络协议' },
-   { rule: '数据上报频率', scene: '软件实验', env: 'ThingsBoard', score: 0, result: false, reason: '频率设置过高 (>10s)', skill: '数据采集优化' },
-   { rule: '控制指令响应', scene: '硬件实验', env: '硬件实验箱', score: 10, result: true, reason: '', skill: '指令下发与反馈' },
+  { rule: '设备连接完整性', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '网络拓扑构建' },
+  { rule: '传感器配置参数', scene: '软件实验', env: '2D虚拟仿真', score: 10, result: true, reason: '', skill: '设备参数配置' },
+  { rule: '网关IP设置', scene: '软件实验', env: 'ThingsBoard', score: 0, result: false, reason: 'IP地址不在同一网段', skill: '网络协议' },
+  { rule: '数据上报频率', scene: '软件实验', env: 'ThingsBoard', score: 0, result: false, reason: '频率设置过高 (>10s)', skill: '数据采集优化' },
+  { rule: '控制指令响应', scene: '硬件实验', env: '硬件实验箱', score: 10, result: true, reason: '', skill: '指令下发与反馈' },
 ];
 
 export const MOCK_IOT_QUESTIONS = Array.from({ length: 50 }, (_, i) => {
   let type = '单选';
   let content = '';
   const skills = ['传感器原理', 'Modbus协议', 'RS485接线', 'ZigBee组网', '网关配置', 'MQTT协议', '设备故障诊断', '数据采集', '电气安全'];
-  
+
   if (i < 20) {
     type = '单选';
-    content = `[理论] 物联网${i+1}: 下列关于${skills[i%skills.length]}的描述正确的是?`;
+    content = `[理论] 物联网${i + 1}: 下列关于${skills[i % skills.length]}的描述正确的是?`;
   } else if (i < 30) {
     type = '多选';
-    content = `[实操] 安装调试${i+1}: 进行${skills[i%skills.length]}时，需要注意哪些事项?`;
+    content = `[实操] 安装调试${i + 1}: 进行${skills[i % skills.length]}时，需要注意哪些事项?`;
   } else if (i < 40) {
     type = '判断';
-    content = `[安全] 规范${i+1}: ${skills[i%skills.length]}操作时可以带电作业吗?`;
+    content = `[安全] 规范${i + 1}: ${skills[i % skills.length]}操作时可以带电作业吗?`;
   } else {
     type = '填空';
-    content = `[配置] 指令${i+1}: 请输入${skills[i%skills.length]}的标准端口号: _____`;
+    content = `[配置] 指令${i + 1}: 请输入${skills[i % skills.length]}的标准端口号: _____`;
   }
 
   return {
@@ -373,11 +373,11 @@ export const MOCK_SOFT_OP_DETAILS = {
       wiringErrorCount: 3,
       totalRunTime: '45m 20s',
       topDevices: [
-         { name: '多功能网关', count: 45 },
-         { name: '继电器模块', count: 32 },
-         { name: '温湿度传感器', count: 28 },
-         { name: 'LED显示屏', count: 15 },
-         { name: '报警灯', count: 12 }
+        { name: '多功能网关', count: 45 },
+        { name: '继电器模块', count: 32 },
+        { name: '温湿度传感器', count: 28 },
+        { name: 'LED显示屏', count: 15 },
+        { name: '报警灯', count: 12 }
       ]
     },
     agentStats: {
@@ -395,51 +395,51 @@ export const MOCK_SOFT_OP_DETAILS = {
   'ThingsBoard': {
     totalTime: '30m',
     ops: [
-       { name: '资产功能', value: 35, type: '资产功能', time: '10m' },
-       { name: '设备功能', value: 20, type: '设备功能', time: '5m' },
-       { name: 'Device Profile', value: 15, type: 'Device Profile', time: '5m' },
-       { name: '实体视图', value: 5, type: '实体视图', time: '2m' },
-       { name: '仪表板', value: 25, type: '仪表板', time: '8m' },
+      { name: '资产功能', value: 35, type: '资产功能', time: '10m' },
+      { name: '设备功能', value: 20, type: '设备功能', time: '5m' },
+      { name: 'Device Profile', value: 15, type: 'Device Profile', time: '5m' },
+      { name: '实体视图', value: 5, type: '实体视图', time: '2m' },
+      { name: '仪表板', value: 25, type: '仪表板', time: '8m' },
     ]
   },
   'Node-Red': {
-     configFile: 'flow_data.json',
-     runtime: '25m',
-     execCount: 15,
-     nodes: [
-        { id: 'n1', type: 'inject', x: 50, y: 50, label: 'Timestamp' },
-        { id: 'n2', type: 'function', x: 200, y: 50, label: 'Process Data' },
-        { id: 'n3', type: 'mqtt out', x: 350, y: 50, label: 'IoT Core' },
-        { id: 'n4', type: 'debug', x: 350, y: 120, label: 'Log' }
-     ],
-     wires: [
-        { from: 'n1', to: 'n2' },
-        { from: 'n2', to: 'n3' },
-        { from: 'n2', to: 'n4' }
-     ]
+    configFile: 'flow_data.json',
+    runtime: '25m',
+    execCount: 15,
+    nodes: [
+      { id: 'n1', type: 'inject', x: 50, y: 50, label: 'Timestamp' },
+      { id: 'n2', type: 'function', x: 200, y: 50, label: 'Process Data' },
+      { id: 'n3', type: 'mqtt out', x: 350, y: 50, label: 'IoT Core' },
+      { id: 'n4', type: 'debug', x: 350, y: 120, label: 'Log' }
+    ],
+    wires: [
+      { from: 'n1', to: 'n2' },
+      { from: 'n2', to: 'n3' },
+      { from: 'n2', to: 'n4' }
+    ]
   },
   '终端': {
-     connectCount: 15,
-     openCount: 5,
-     totalTime: '45m',
-     topCommands: [
-        { cmd: 'docker ps', count: 45 },
-        { cmd: 'ls -la', count: 32 },
-        { cmd: 'cd', count: 28 },
-        { cmd: 'cat', count: 15 },
-        { cmd: 'vi', count: 12 }
-     ],
-     history: [
-        { cmd: 'ls -la', time: '09:01', output: 'total 0\ndrwxr-xr-x 1 user user 4096 Nov 28 09:00 .' },
-        { cmd: 'docker ps', time: '09:02', output: 'CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES' },
-        { cmd: 'cd /var/log', time: '09:03', output: '' },
-     ],
-     execCount: 12,
-     errors: [
-        { cmd: 'apt-get install', log: 'E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)' },
-        { cmd: './script.sh', log: 'bash: ./script.sh: Permission denied' }
-     ],
-     containerChanges: 'Added 1 container'
+    connectCount: 15,
+    openCount: 5,
+    totalTime: '45m',
+    topCommands: [
+      { cmd: 'docker ps', count: 45 },
+      { cmd: 'ls -la', count: 32 },
+      { cmd: 'cd', count: 28 },
+      { cmd: 'cat', count: 15 },
+      { cmd: 'vi', count: 12 }
+    ],
+    history: [
+      { cmd: 'ls -la', time: '09:01', output: 'total 0\ndrwxr-xr-x 1 user user 4096 Nov 28 09:00 .' },
+      { cmd: 'docker ps', time: '09:02', output: 'CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES' },
+      { cmd: 'cd /var/log', time: '09:03', output: '' },
+    ],
+    execCount: 12,
+    errors: [
+      { cmd: 'apt-get install', log: 'E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)' },
+      { cmd: './script.sh', log: 'bash: ./script.sh: Permission denied' }
+    ],
+    containerChanges: 'Added 1 container'
   }
 };
 
@@ -452,80 +452,80 @@ export const MOCK_HARD_OP_TASKS = [
 ];
 
 export const MOCK_HARD_OP_DETAILS = {
-   'Lora设备智能体': {
-      agentName: 'Lora设备智能体',
-      scene: '硬件实训环节',
-      dataDesc: '操作过程记录',
-      dataType: ['Excel', 'JSON'],
-      deviceConfig: { ip: '192.168.1.101', port: '8080', mode: '透传模式', status: '在线' },
-      runtime: '45m 12s',
-      changes: [
-         { time: '14:05:10', content: '修改发射功率为 20dBm' },
-         { time: '14:10:22', content: '修改信道为 433MHz' }
-      ],
-      states: [
-         { time: '14:00:00', status: '上线' },
-         { time: '14:45:12', status: '下线' }
-      ],
-      ai: {
-         totalQ: 5,
-         totalWords: 120,
-         satisfaction: '4.8',
-         totalDialogs: 8,
-         qaList: [
-            { q: 'Lora模块无法入网怎么办？', a: '请检查密钥AppKey是否一致，以及信道配置是否正确。', time: '14:08' },
-            { q: '如何修改信道？', a: '使用AT命令AT+CH=433进行修改。', time: '14:09' }
-         ]
-      }
-   },
-   '串口终端智能体': {
-      agentName: '串口终端智能体',
-      scene: '硬件实训环节',
-      dataDesc: '操作过程记录',
-      dataType: ['Excel', 'JSON'],
-      deviceConfig: { baudRate: '115200', dataBits: '8', stopBits: '1', parity: 'None' },
-      runtime: '30m 00s',
-      changes: [
-         { time: '10:05:00', content: '打开串口 COM3' },
-         { time: '10:25:00', content: '发送 HEX 数据: AA 55' }
-      ],
-      states: [
-         { time: '10:00:00', status: '打开' },
-         { time: '10:30:00', status: '关闭' }
-      ],
-      ai: {
-         totalQ: 3,
-         totalWords: 80,
-         satisfaction: '5.0',
-         totalDialogs: 5,
-         qaList: [
-            { q: '波特率不匹配会显示什么？', a: '通常会显示乱码。', time: '10:10' }
-         ]
-      }
-   },
-   '中心网关设备智能体': {
-      agentName: '中心网关设备智能体',
-      scene: '硬件实训环节',
-      dataDesc: '操作过程记录',
-      dataType: ['Excel', 'JSON'],
-      deviceConfig: { ip: '10.0.0.1', protocol: 'MQTT', clientId: 'gateway_001' },
-      runtime: '50m',
-      changes: [
-         { time: '15:40:00', content: '重启 MQTT 服务' }
-      ],
-      states: [
-         { time: '15:30:00', status: '运行中' }
-      ],
-      ai: {
-         totalQ: 10,
-         totalWords: 500,
-         satisfaction: '4.7',
-         totalDialogs: 15,
-         qaList: [
-            { q: '网关无法连接云平台', a: '检查网络连接，确保证书配置正确。', time: '15:35' }
-         ]
-      }
-   }
+  'Lora设备智能体': {
+    agentName: 'Lora设备智能体',
+    scene: '硬件实训环节',
+    dataDesc: '操作过程记录',
+    dataType: ['Excel', 'JSON'],
+    deviceConfig: { ip: '192.168.1.101', port: '8080', mode: '透传模式', status: '在线' },
+    runtime: '45m 12s',
+    changes: [
+      { time: '14:05:10', content: '修改发射功率为 20dBm' },
+      { time: '14:10:22', content: '修改信道为 433MHz' }
+    ],
+    states: [
+      { time: '14:00:00', status: '上线' },
+      { time: '14:45:12', status: '下线' }
+    ],
+    ai: {
+      totalQ: 5,
+      totalWords: 120,
+      satisfaction: '4.8',
+      totalDialogs: 8,
+      qaList: [
+        { q: 'Lora模块无法入网怎么办？', a: '请检查密钥AppKey是否一致，以及信道配置是否正确。', time: '14:08' },
+        { q: '如何修改信道？', a: '使用AT命令AT+CH=433进行修改。', time: '14:09' }
+      ]
+    }
+  },
+  '串口终端智能体': {
+    agentName: '串口终端智能体',
+    scene: '硬件实训环节',
+    dataDesc: '操作过程记录',
+    dataType: ['Excel', 'JSON'],
+    deviceConfig: { baudRate: '115200', dataBits: '8', stopBits: '1', parity: 'None' },
+    runtime: '30m 00s',
+    changes: [
+      { time: '10:05:00', content: '打开串口 COM3' },
+      { time: '10:25:00', content: '发送 HEX 数据: AA 55' }
+    ],
+    states: [
+      { time: '10:00:00', status: '打开' },
+      { time: '10:30:00', status: '关闭' }
+    ],
+    ai: {
+      totalQ: 3,
+      totalWords: 80,
+      satisfaction: '5.0',
+      totalDialogs: 5,
+      qaList: [
+        { q: '波特率不匹配会显示什么？', a: '通常会显示乱码。', time: '10:10' }
+      ]
+    }
+  },
+  '中心网关设备智能体': {
+    agentName: '中心网关设备智能体',
+    scene: '硬件实训环节',
+    dataDesc: '操作过程记录',
+    dataType: ['Excel', 'JSON'],
+    deviceConfig: { ip: '10.0.0.1', protocol: 'MQTT', clientId: 'gateway_001' },
+    runtime: '50m',
+    changes: [
+      { time: '15:40:00', content: '重启 MQTT 服务' }
+    ],
+    states: [
+      { time: '15:30:00', status: '运行中' }
+    ],
+    ai: {
+      totalQ: 10,
+      totalWords: 500,
+      satisfaction: '4.7',
+      totalDialogs: 15,
+      qaList: [
+        { q: '网关无法连接云平台', a: '检查网络连接，确保证书配置正确。', time: '15:35' }
+      ]
+    }
+  }
 };
 
 export const LEARNING_COURSES = [
@@ -558,30 +558,30 @@ export const LEARNING_SKILLS = [
 ];
 
 export const LEARNING_SKILLS_FULL = [
-  ...Array.from({length: 100}, (_, i) => ({ // Increased to 100
-    code: `A${(i+1).toString().padStart(3, '0')}`,
-    name: `智慧园区技能点-${i+1}`,
+  ...Array.from({ length: 100 }, (_, i) => ({ // Increased to 100
+    code: `A${(i + 1).toString().padStart(3, '0')}`,
+    name: `智慧园区技能点-${i + 1}`,
     course: '《智慧园区》',
     score: Math.random() > 0.4 ? Math.floor(Math.random() * 15) + 85 : Math.floor(Math.random() * 40) + 40,
     color: ''
   })),
-  ...Array.from({length: 100}, (_, i) => ({ // Increased to 100
-    code: `B${(i+1).toString().padStart(3, '0')}`,
-    name: `嵌入式开发技能-${i+1}`,
+  ...Array.from({ length: 100 }, (_, i) => ({ // Increased to 100
+    code: `B${(i + 1).toString().padStart(3, '0')}`,
+    name: `嵌入式开发技能-${i + 1}`,
     course: '《嵌入式开发》',
     score: Math.random() > 0.5 ? Math.floor(Math.random() * 20) + 60 : Math.floor(Math.random() * 40) + 30,
     color: ''
   })),
-  ...Array.from({length: 50}, (_, i) => ({
-    code: `C${(i+1).toString().padStart(3, '0')}`,
-    name: `Python编程技能-${i+1}`,
+  ...Array.from({ length: 50 }, (_, i) => ({
+    code: `C${(i + 1).toString().padStart(3, '0')}`,
+    name: `Python编程技能-${i + 1}`,
     course: '《Python基础》',
     score: Math.floor(Math.random() * 15) + 85,
     color: ''
   })),
-  ...Array.from({length: 50}, (_, i) => ({
-    code: `D${(i+1).toString().padStart(3, '0')}`,
-    name: `计算机网络技能-${i+1}`,
+  ...Array.from({ length: 50 }, (_, i) => ({
+    code: `D${(i + 1).toString().padStart(3, '0')}`,
+    name: `计算机网络技能-${i + 1}`,
     course: '《计算机网络》',
     score: Math.floor(Math.random() * 50) + 40,
     color: ''
@@ -595,74 +595,74 @@ export const WEAKNESS_DATA = [
 ];
 
 export const JOB_RECOMMENDATIONS = [
-  { 
-    title: '物联网系统开发工程师', 
-    match: 92, 
+  {
+    title: '物联网系统开发工程师',
+    match: 92,
     salary: '12k-20k',
     reason: 'Python编程能力卓越，且对智慧园区业务逻辑理解深刻，完全符合系统开发岗要求。',
     matchingSkills: [
-        { name: 'Python', score: 98, fullMark: 100 },
-        { name: '业务逻辑', score: 90, fullMark: 100 },
-        { name: '系统架构', score: 85, fullMark: 100 },
-        { name: '数据库', score: 88, fullMark: 100 },
-        { name: 'Linux', score: 80, fullMark: 100 },
-        { name: '网络协议', score: 85, fullMark: 100 }
+      { name: 'Python', score: 98, fullMark: 100 },
+      { name: '业务逻辑', score: 90, fullMark: 100 },
+      { name: '系统架构', score: 85, fullMark: 100 },
+      { name: '数据库', score: 88, fullMark: 100 },
+      { name: 'Linux', score: 80, fullMark: 100 },
+      { name: '网络协议', score: 85, fullMark: 100 }
     ]
   },
-  { 
-    title: '嵌入式软件工程师', 
-    match: 85, 
+  {
+    title: '嵌入式软件工程师',
+    match: 85,
     salary: '10k-18k',
     reason: '具备扎实的C语言基础和RTOS知识，但硬件底层驱动开发能力有待加强。',
     matchingSkills: [
-        { name: 'C语言', score: 92, fullMark: 100 },
-        { name: 'RTOS', score: 80, fullMark: 100 },
-        { name: '驱动开发', score: 65, fullMark: 100 },
-        { name: '硬件调试', score: 75, fullMark: 100 },
-        { name: '电路分析', score: 70, fullMark: 100 },
-        { name: '通信协议', score: 85, fullMark: 100 }
+      { name: 'C语言', score: 92, fullMark: 100 },
+      { name: 'RTOS', score: 80, fullMark: 100 },
+      { name: '驱动开发', score: 65, fullMark: 100 },
+      { name: '硬件调试', score: 75, fullMark: 100 },
+      { name: '电路分析', score: 70, fullMark: 100 },
+      { name: '通信协议', score: 85, fullMark: 100 }
     ]
   },
-  { 
-    title: 'Python后端开发工程师', 
-    match: 88, 
+  {
+    title: 'Python后端开发工程师',
+    match: 88,
     salary: '15k-25k',
     reason: '函数 definition 与数据结构操作熟练，适合往后端服务开发方向发展。',
     matchingSkills: [
-        { name: 'Python', score: 98, fullMark: 100 },
-        { name: '数据库', score: 82, fullMark: 100 },
-        { name: 'API设计', score: 78, fullMark: 100 },
-        { name: '算法', score: 85, fullMark: 100 },
-        { name: '框架应用', score: 90, fullMark: 100 },
-        { name: '并发编程', score: 75, fullMark: 100 }
+      { name: 'Python', score: 98, fullMark: 100 },
+      { name: '数据库', score: 82, fullMark: 100 },
+      { name: 'API设计', score: 78, fullMark: 100 },
+      { name: '算法', score: 85, fullMark: 100 },
+      { name: '框架应用', score: 90, fullMark: 100 },
+      { name: '并发编程', score: 75, fullMark: 100 }
     ]
   },
-  { 
-    title: '智能硬件测试工程师', 
-    match: 82, 
+  {
+    title: '智能硬件测试工程师',
+    match: 82,
     salary: '8k-15k',
     reason: '熟悉设备调试与故障排查流程，细心程度高，适合硬件测试岗位。',
     matchingSkills: [
-        { name: '设备调试', score: 85, fullMark: 100 },
-        { name: '故障排查', score: 80, fullMark: 100 },
-        { name: '测试理论', score: 75, fullMark: 100 },
-        { name: '自动化测试', score: 65, fullMark: 100 },
-        { name: '文档编写', score: 85, fullMark: 100 },
-        { name: '工具使用', score: 90, fullMark: 100 }
+      { name: '设备调试', score: 85, fullMark: 100 },
+      { name: '故障排查', score: 80, fullMark: 100 },
+      { name: '测试理论', score: 75, fullMark: 100 },
+      { name: '自动化测试', score: 65, fullMark: 100 },
+      { name: '文档编写', score: 85, fullMark: 100 },
+      { name: '工具使用', score: 90, fullMark: 100 }
     ]
   },
-  { 
-    title: '物联网运维工程师', 
-    match: 78, 
+  {
+    title: '物联网运维工程师',
+    match: 78,
     salary: '9k-14k',
     reason: '网络基础知识扎实，能独立完成设备上云与维护工作。',
     matchingSkills: [
-        { name: '网络配置', score: 85, fullMark: 100 },
-        { name: 'Linux', score: 75, fullMark: 100 },
-        { name: '云平台', score: 70, fullMark: 100 },
-        { name: 'Shell脚本', score: 80, fullMark: 100 },
-        { name: '安全防护', score: 65, fullMark: 100 },
-        { name: '监控部署', score: 78, fullMark: 100 }
+      { name: '网络配置', score: 85, fullMark: 100 },
+      { name: 'Linux', score: 75, fullMark: 100 },
+      { name: '云平台', score: 70, fullMark: 100 },
+      { name: 'Shell脚本', score: 80, fullMark: 100 },
+      { name: '安全防护', score: 65, fullMark: 100 },
+      { name: '监控部署', score: 78, fullMark: 100 }
     ]
   }
 ];

@@ -12,8 +12,9 @@ export enum ViewState {
   SKILL_ANALYSIS = 'SKILL_ANALYSIS',
   LEARNING_ANALYSIS = 'LEARNING_ANALYSIS',
   PROCESS_DATA = 'PROCESS_DATA',
+  PLATFORM_INTRO = 'PLATFORM_INTRO',
   // Kept for backward compatibility if needed, though mapped to new views
-  AUTO_SCORING = 'AUTO_SCORING', 
+  AUTO_SCORING = 'AUTO_SCORING',
   STATS = 'STATS',
   THIRD_PARTY = 'THIRD_PARTY'
 }
