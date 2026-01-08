@@ -1,4 +1,5 @@
-import React from 'react';
+<script setup lang="ts">
+import { computed } from 'vue';
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -16,24 +17,29 @@ const getStudentData = (lang: Language) => [
   { subject: lang === 'zh' ? '软技能' : 'Soft Skills', A: 65, fullMark: 150 },
 ];
 
-export const StudentRadarChart: React.FC<{ language: Language }> = ({ language }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={getStudentData(language)}>
-      <PolarGrid stroke="#e2e8f0" />
-      <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
-      <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
-      <Radar
-        name={language === 'zh' ? "学生" : "Student"}
-        dataKey="A"
-        stroke="#0d9488"
-        strokeWidth={2}
-        fill="#2dd4bf"
-        fillOpacity={0.4}
-      />
-      <Tooltip />
-    </RadarChart>
-  </ResponsiveContainer>
-);
+export const StudentRadarChart = (props: { language: Language }) => {
+  const { language } = props;
+  const data = computed(() => getStudentData(language));
+  
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data.value}>
+        <PolarGrid stroke="#e2e8f0" />
+        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 12 }} />
+        <PolarRadiusAxis angle={30} domain={[0, 150]} tick={false} axisLine={false} />
+        <Radar
+          name={language === 'zh' ? "学生" : "Student"}
+          dataKey="A"
+          stroke="#0d9488"
+          strokeWidth={2}
+          fill="#2dd4bf"
+          fillOpacity={0.4}
+        />
+        <Tooltip />
+      </RadarChart>
+    </ResponsiveContainer>
+  );
+};
 
 // --- Skill Analysis Radar Chart (Dynamic Data) ---
 export interface RadarDataPoint {
@@ -47,20 +53,22 @@ interface SkillRadarChartProps {
   data?: RadarDataPoint[]; 
 }
 
-export const SkillRadarChart: React.FC<SkillRadarChartProps> = ({ language, data }) => {
+export const SkillRadarChart = (props: SkillRadarChartProps) => {
+  const { language, data } = props;
+  
   // Default data if none provided
-  const chartData = data || [
+  const chartData = computed(() => data || [
     { subject: language === 'zh' ? '物联网理论' : 'IoT Theory', A: 85, fullMark: 100 },
     { subject: language === 'zh' ? '设备安装' : 'Installation', A: 65, fullMark: 100 },
     { subject: language === 'zh' ? '设备调试' : 'Debugging', A: 90, fullMark: 100 },
     { subject: language === 'zh' ? '网络配置' : 'Network Config', A: 75, fullMark: 100 },
     { subject: language === 'zh' ? '数据分析' : 'Data Analysis', A: 60, fullMark: 100 },
     { subject: language === 'zh' ? '故障排查' : 'Troubleshooting', A: 80, fullMark: 100 },
-  ];
+  ]);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
-      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
+      <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData.value}>
         <PolarGrid stroke="#e2e8f0" />
         <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 11 }} />
         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
@@ -87,17 +95,22 @@ const getClassData = (lang: Language) => [
   { name: lang === 'zh' ? 'E班' : 'Class E', avg: 88 },
 ];
 
-export const ClassPerformanceChart: React.FC<{ language: Language }> = ({ language }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <BarChart data={getClassData(language)}>
-      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
-      <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
-      <Tooltip cursor={{ fill: '#f8fafc' }} />
-      <Bar dataKey="avg" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} name={language === 'zh' ? '平均分' : 'Average'} />
-    </BarChart>
-  </ResponsiveContainer>
-);
+export const ClassPerformanceChart = (props: { language: Language }) => {
+  const { language } = props;
+  const data = computed(() => getClassData(language));
+  
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data.value}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
+        <Tooltip cursor={{ fill: '#f8fafc' }} />
+        <Bar dataKey="avg" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={40} name={language === 'zh' ? '平均分' : 'Average'} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+};
 
 // --- Activity Pie Chart ---
 const getActivityData = (lang: Language) => [
@@ -108,28 +121,33 @@ const getActivityData = (lang: Language) => [
 ];
 const COLORS = ['#2dd4bf', '#fb923c', '#818cf8', '#f472b6'];
 
-export const ActivityPieChart: React.FC<{ language: Language }> = ({ language }) => (
-  <ResponsiveContainer width="100%" height={300}>
-    <PieChart>
-      <Pie
-        data={getActivityData(language)}
-        cx="50%"
-        cy="50%"
-        innerRadius={60}
-        outerRadius={80}
-        fill="#8884d8"
-        paddingAngle={5}
-        dataKey="value"
-      >
-        {getActivityData(language).map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-        ))}
-      </Pie>
-      <Tooltip />
-      <Legend verticalAlign="bottom" height={36} iconType="circle" />
-    </PieChart>
-  </ResponsiveContainer>
-);
+export const ActivityPieChart = (props: { language: Language }) => {
+  const { language } = props;
+  const data = computed(() => getActivityData(language));
+  
+  return (
+    <ResponsiveContainer width="100%" height={300}>
+      <PieChart>
+        <Pie
+          data={data.value}
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={80}
+          fill="#8884d8"
+          paddingAngle={5}
+          dataKey="value"
+        >
+          {data.value.map((entry, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+        <Tooltip />
+        <Legend verticalAlign="bottom" height={36} iconType="circle" />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+};
 
 // --- Learning Trend Line Chart ---
 const trendData = [
@@ -141,25 +159,29 @@ const trendData = [
   { week: 'W6', score: 90 },
 ];
 
-export const TrendChart: React.FC<{ language: Language }> = ({ language }) => (
-  <ResponsiveContainer width="100%" height={200}>
-    <LineChart data={trendData}>
-      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-      <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
-      <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 100]} />
-      <Tooltip />
-      <Line 
-        type="monotone" 
-        dataKey="score" 
-        stroke="#6366f1" 
-        strokeWidth={3} 
-        dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} 
-        activeDot={{ r: 6 }} 
-        name={language === 'zh' ? '分数' : 'Score'}
-      />
-    </LineChart>
-  </ResponsiveContainer>
-);
+export const TrendChart = (props: { language: Language }) => {
+  const { language } = props;
+  
+  return (
+    <ResponsiveContainer width="100%" height={200}>
+      <LineChart data={trendData}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+        <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} axisLine={false} tickLine={false} domain={[0, 100]} />
+        <Tooltip />
+        <Line 
+          type="monotone" 
+          dataKey="score" 
+          stroke="#6366f1" 
+          strokeWidth={3} 
+          dot={{ r: 4, strokeWidth: 2, fill: '#fff' }} 
+          activeDot={{ r: 6 }} 
+          name={language === 'zh' ? '分数' : 'Score'}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+};
 
 // --- Dynamic Process Chart ---
 interface DynamicProcessChartProps {
@@ -168,7 +190,9 @@ interface DynamicProcessChartProps {
   color?: string;
 }
 
-export const DynamicProcessChart: React.FC<DynamicProcessChartProps> = ({ data, type, color = '#0d9488' }) => {
+export const DynamicProcessChart = (props: DynamicProcessChartProps) => {
+  const { data, type, color = '#0d9488' } = props;
+  
   return (
     <ResponsiveContainer width="100%" height={350}>
       {type === 'bar' ? (
@@ -198,3 +222,4 @@ export const DynamicProcessChart: React.FC<DynamicProcessChartProps> = ({ data, 
     </ResponsiveContainer>
   );
 };
+</script>
