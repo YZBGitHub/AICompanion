@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer,
@@ -198,3 +199,71 @@ export const DynamicProcessChart: React.FC<DynamicProcessChartProps> = ({ data, 
     </ResponsiveContainer>
   );
 };
+
+// --- Mastery Distribution Pie Chart (Solid Pie) ---
+interface PieDataPoint {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export const MasteryDistributionPie: React.FC<{ data: PieDataPoint[] }> = ({ data }) => (
+  <ResponsiveContainer width="100%" height={200}>
+    <PieChart>
+      <Pie
+        data={data}
+        cx="50%"
+        cy="50%"
+        innerRadius={0} // Solid pie
+        outerRadius={80}
+        paddingAngle={2}
+        dataKey="value"
+      >
+        {data.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />
+        ))}
+      </Pie>
+      <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
+      <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
+    </PieChart>
+  </ResponsiveContainer>
+);
+
+// --- Category Mastery Grouped Bar Chart ---
+export interface GroupedBarDataPoint {
+  name: string; // Category A, B...
+  improve: number;
+  good: number;
+  excellent: number;
+}
+
+export const CategoryMasteryBarChart: React.FC<{ data: GroupedBarDataPoint[] }> = ({ data }) => (
+  <ResponsiveContainer width="100%" height={200}>
+    <BarChart data={data} barGap={0}>
+      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+      <Tooltip 
+         contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+         cursor={{fill: '#f8fafc'}}
+      />
+      <Legend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+      <Bar dataKey="improve" name="待提升" fill="#cbd5e1" radius={[2, 2, 0, 0]} />
+      <Bar dataKey="good" name="良好" fill="#60a5fa" radius={[2, 2, 0, 0]} />
+      <Bar dataKey="excellent" name="优秀" fill="#10b981" radius={[2, 2, 0, 0]} />
+    </BarChart>
+  </ResponsiveContainer>
+);
+
+// --- Original Line Chart (Deprecated but kept if needed) ---
+export const CategoryMasteryLine: React.FC<{ data: any[] }> = ({ data }) => (
+  <ResponsiveContainer width="100%" height={200}>
+    <LineChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+      <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+      <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+      <Tooltip />
+      <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} />
+    </LineChart>
+  </ResponsiveContainer>
+);

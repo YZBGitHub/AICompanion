@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   GraduationCap, Brain, Users, Award, BookOpen, Star, 
   Activity, Zap, Target, TrendingUp, AlertCircle, User, 
@@ -21,7 +21,12 @@ import {
   MessageSquare,
   Trophy,
   Layers,
-  Map
+  Map,
+  ChevronDown,
+  Folder,
+  File,
+  CheckSquare,
+  Square
 } from 'lucide-react';
 import { UserRole, Language } from '../types';
 import { 
@@ -64,7 +69,6 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
   const [viewMode, setViewMode] = useState<'student' | 'teacher'>(currentRole === UserRole.TEACHER ? 'teacher' : 'student');
   const [teacherTab, setTeacherTab] = useState<'assistant' | 'profile'>('assistant');
   const [selectedPersonaId, setSelectedPersonaId] = useState('geek'); 
-  const [skillFilter, setSkillFilter] = useState('全部');
   const [isRegenerating, setIsRegenerating] = useState(false);
   
   // Selection State for Teacher/Admin
@@ -83,21 +87,307 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
   const [selectedAiClasses, setSelectedAiClasses] = useState<string[]>(MOCK_CLASSES.slice(0, 1));
   const [selectedAiDataTypes, setSelectedAiDataTypes] = useState<string[]>(['技能点数据', '全过程数据-学习行为']);
 
+  // --- Student View Skill Tree State ---
+  const [expandedNodes, setExpandedNodes] = useState<string[]>([]);
+  // Use array of selected category IDs for multi-selection
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+
+  // --- Teacher View Skill Tree State (New) ---
+  const [expandedTeacherNodes, setExpandedTeacherNodes] = useState<string[]>([]);
+  const [selectedTeacherNodes, setSelectedTeacherNodes] = useState<string[]>([]);
+
+  // Generate Tree Data (Unified for both views structure-wise, but we use it here)
+  const treeData = useMemo(() => [
+    { id: 'A', name: '理论基础', children: [{id: 'A-1', name: '物联网概论'}, {id: 'A-2', name: '架构标准'}] },
+    { id: 'B', name: '硬件开发', children: [{id: 'B-1', name: '传感器技术'}, {id: 'B-2', name: '嵌入式系统'}] },
+    { id: 'C', name: '软件工程', children: [{id: 'C-1', name: 'C语言/Python'}, {id: 'C-2', name: '数据结构'}] },
+    { id: 'D', name: '网络通信', children: [{id: 'D-1', name: '无线传感网'}, {id: 'D-2', name: '网络协议'}] },
+    { id: 'E', name: '平台应用', children: [{id: 'E-1', name: '云平台部署'}, {id: 'E-2', name: '边缘计算'}] },
+    { id: 'F', name: '数据分析', children: [{id: 'F-1', name: '数据可视化'}, {id: 'F-2', name: '大数据基础'}] },
+    { id: 'G', name: '系统集成', children: [{id: 'G-1', name: '项目实战'}, {id: 'G-2', name: '系统调试'}] },
+    { id: 'H', name: '职业素养', children: [{id: 'H-1', name: '工程伦理'}, {id: 'H-2', name: '团队协作'}] },
+  ], []);
+
+  // Initialize expanded nodes and select all categories by default (Student)
+  useEffect(() => {
+      if (treeData.length > 0) {
+          if (expandedNodes.length === 0) setExpandedNodes([treeData[0].id]);
+          
+          // Select all categories initially for student
+          const allCatIds: string[] = [];
+          treeData.forEach(c => {
+              allCatIds.push(c.id); // Parent
+              c.children.forEach(cat => allCatIds.push(cat.id)); // Children
+          });
+          if (selectedCategories.length === 0) setSelectedCategories(allCatIds);
+      }
+  }, [treeData]);
+
+  // Tree Handlers (Student)
+  const toggleNodeExpand = (id: string) => {
+      setExpandedNodes(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
+  };
+
+  const toggleCategorySelection = (id: string) => {
+      setSelectedCategories(prev => {
+          if (prev.includes(id)) return prev.filter(c => c !== id);
+          return [...prev, id];
+      });
+  };
+
+  const toggleCourseSelection = (courseId: string) => {
+      const courseNode = treeData.find(c => c.id === courseId); // treeData uses A, B.. as IDs
+      if (!courseNode) {
+          // Fallback for Student logic if mapping is different
+          // The student logic was using `skillTreeData` (course-based). 
+          // Let's keep student logic isolated below if needed, but here we fix the Teacher Logic mainly.
+          return;
+      }
+  };
+
+  // --- Student Specific Data Gen (Preserving original logic style but adapting if needed) ---
+  // Re-generate `skillTreeData` for student view consistency with previous code
+  const studentSkillTreeData = useMemo(() => {
+    const courses = Array.from(new Set(LEARNING_SKILLS_FULL.map(s => s.course)));
+    return courses.map(c => {
+      const courseSkills = LEARNING_SKILLS_FULL.filter(s => s.course === c);
+      const categories = Array.from(new Set(courseSkills.map(s => s.code.charAt(0)))).sort();
+      return {
+        id: c,
+        name: c,
+        children: categories.map(cat => ({
+          id: `${c}-${cat}`,
+          name: `${cat}类技能`,
+          parentId: c,
+          count: courseSkills.filter(s => s.code.startsWith(cat)).length
+        }))
+      };
+    });
+  }, []);
+
+  // Student specific handlers
+  const toggleStudentNodeExpand = (id: string) => {
+      setExpandedNodes(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
+  };
+  const toggleStudentCategorySelection = (id: string) => {
+      setSelectedCategories(prev => {
+          if (prev.includes(id)) return prev.filter(c => c !== id);
+          return [...prev, id];
+      });
+  };
+  const toggleStudentCourseSelection = (courseId: string) => {
+      const courseNode = studentSkillTreeData.find(c => c.id === courseId);
+      if (!courseNode) return;
+      const childIds = courseNode.children.map(c => c.id);
+      const allSelected = childIds.every(id => selectedCategories.includes(id));
+      setSelectedCategories(prev => {
+          if (allSelected) return prev.filter(id => !childIds.includes(id));
+          const newSet = new Set([...prev, ...childIds]);
+          return Array.from(newSet);
+      });
+  };
+  const toggleAllStudentSelection = () => {
+      const allCatIds: string[] = [];
+      studentSkillTreeData.forEach(c => c.children.forEach(cat => allCatIds.push(cat.id)));
+      if (selectedCategories.length === allCatIds.length) setSelectedCategories([]);
+      else setSelectedCategories(allCatIds);
+  };
+
+
+  // --- Teacher View Data Logic ---
+  
+  // 1. Generate Teacher Skill Points (Mock Data based on treeData for 8 categories)
+  const teacherSkillPoints = useMemo(() => {
+      const points: any[] = [];
+      treeData.forEach((cat) => {
+          // Generate detailed skill points for each sub-category
+          if (cat.children) {
+              cat.children.forEach(sub => {
+                  // Generate 8-12 skills per sub-category
+                  const count = 10; 
+                  for(let i=0; i<count; i++) {
+                       points.push({
+                           id: `${sub.id}-S${i+1}`, 
+                           code: `${sub.id}-${i+1}`,
+                           name: `${sub.name}点${i+1}`,
+                           catId: cat.id,
+                           subId: sub.id,
+                           catName: cat.name,
+                           // Random class avg score, skewed towards high for demo
+                           score: Math.floor(Math.random() * 40) + 55, 
+                           course: selectedProfileCourse 
+                       });
+                  }
+              });
+          }
+      });
+      return points;
+  }, [treeData, selectedProfileCourse]);
+
+  // 2. Initialize Teacher Selection
+  useEffect(() => {
+      if (treeData.length > 0) {
+          // Expand all by default
+          setExpandedTeacherNodes(treeData.map(c => c.id));
+          
+          // Select all by default
+          const allIds: string[] = [];
+          treeData.forEach(c => {
+              allIds.push(c.id);
+              c.children.forEach(sub => allIds.push(sub.id));
+          });
+          setSelectedTeacherNodes(allIds);
+      }
+  }, [treeData]);
+
+  // 3. Teacher Handlers
+  const toggleTeacherNodeExpand = (id: string) => {
+      setExpandedTeacherNodes(prev => prev.includes(id) ? prev.filter(n => n !== id) : [...prev, id]);
+  };
+
+  const toggleTeacherSelection = (id: string, type: 'root' | 'cat' | 'sub') => {
+      if (type === 'root') {
+          // Toggle All
+          const allIds: string[] = [];
+          treeData.forEach(c => {
+              allIds.push(c.id);
+              c.children.forEach(sub => allIds.push(sub.id));
+          });
+          if (selectedTeacherNodes.length === allIds.length) setSelectedTeacherNodes([]);
+          else setSelectedTeacherNodes(allIds);
+      } else if (type === 'cat') {
+          // Toggle Category + Children
+          const node = treeData.find(c => c.id === id);
+          if (!node) return;
+          const childIds = node.children.map(c => c.id);
+          const allIds = [node.id, ...childIds];
+          
+          const isAllSelected = childIds.every(cid => selectedTeacherNodes.includes(cid));
+          
+          setSelectedTeacherNodes(prev => {
+              if (isAllSelected) {
+                  return prev.filter(pid => !allIds.includes(pid));
+              } else {
+                  return Array.from(new Set([...prev, ...allIds]));
+              }
+          });
+      } else {
+          // Toggle Sub-category
+          setSelectedTeacherNodes(prev => {
+              if (prev.includes(id)) return prev.filter(pid => pid !== id);
+              return [...prev, id];
+          });
+      }
+  };
+
+  // 4. Derived Teacher Data
+  const activeTeacherSkills = useMemo(() => {
+      // Filter skills where subId is selected
+      return teacherSkillPoints.filter(s => selectedTeacherNodes.includes(s.subId));
+  }, [teacherSkillPoints, selectedTeacherNodes]);
+
+  // 5. Teacher Charts Data
+  const teacherPieData = useMemo(() => {
+      const excellent = activeTeacherSkills.filter(s => s.score >= 85).length;
+      const good = activeTeacherSkills.filter(s => s.score >= 60 && s.score < 85).length;
+      const improve = activeTeacherSkills.filter(s => s.score < 60).length;
+      
+      if (activeTeacherSkills.length === 0) return [{ name: '无数据', value: 1, color: '#f1f5f9' }];
+
+      return [
+          { name: '优秀 (>=85)', value: excellent, color: '#10b981' },
+          { name: '良好 (60-84)', value: good, color: '#3b82f6' },
+          { name: '待提升 (<60)', value: improve, color: '#cbd5e1' }
+      ];
+  }, [activeTeacherSkills]);
+
+  const teacherCategoryBarData = useMemo(() => {
+      return treeData.map(cat => {
+          // Only show if category (or any of its children) is selected
+          const isRelevant = selectedTeacherNodes.includes(cat.id) || cat.children.some(sub => selectedTeacherNodes.includes(sub.id));
+          if (!isRelevant && selectedTeacherNodes.length > 0) return null;
+
+          const catSkills = activeTeacherSkills.filter(s => s.catId === cat.id);
+          return {
+              name: cat.name,
+              excellent: catSkills.filter(s => s.score >= 85).length,
+              good: catSkills.filter(s => s.score >= 60 && s.score < 85).length,
+              improve: catSkills.filter(s => s.score < 60).length
+          };
+      }).filter(Boolean); 
+  }, [treeData, activeTeacherSkills, selectedTeacherNodes]);
+
+
+  // Derived Data based on selection (Student)
+  const activeSkills = useMemo(() => {
+    return LEARNING_SKILLS_FULL.filter(s => {
+       const catId = `${s.course}-${s.code.charAt(0)}`;
+       return selectedCategories.includes(catId);
+    });
+  }, [selectedCategories]);
+
+  // Pie Data (Active Selection) (Student)
+  const skillPieData = useMemo(() => {
+      const excellent = activeSkills.filter(s => s.score >= 85).length;
+      const good = activeSkills.filter(s => s.score >= 60 && s.score < 85).length;
+      const improve = activeSkills.filter(s => s.score < 60).length;
+      
+      // Handle empty data case to avoid ugly charts
+      if (activeSkills.length === 0) return [{ name: '无数据', value: 1, color: '#f1f5f9' }];
+
+      return [
+          { name: '优秀 (>=85)', value: excellent, color: '#10b981' },
+          { name: '良好 (60-84)', value: good, color: '#3b82f6' },
+          { name: '待提升 (<60)', value: improve, color: '#cbd5e1' }
+      ];
+  }, [activeSkills]);
+
+  // Grouped Bar Data (Reflects active courses) (Student)
+  const courseBarData = useMemo(() => {
+      // Only include courses that have at least one selected category
+      const activeCourses = Array.from(new Set(activeSkills.map(s => s.course)));
+      
+      return activeCourses.map(c => {
+          const skills = activeSkills.filter(s => s.course === c);
+          return {
+              name: (c as string).replace(/[《》]/g, ''), 
+              excellent: skills.filter(s => s.score >= 85).length,
+              good: skills.filter(s => s.score >= 60 && s.score < 85).length,
+              improve: skills.filter(s => s.score < 60).length
+          };
+      });
+  }, [activeSkills]);
+
   const currentPersona = AI_PERSONAS.find(p => p.id === selectedPersonaId) || AI_PERSONAS[0];
   const canSelectStudent = currentRole === UserRole.TEACHER || currentRole === UserRole.ADMIN;
   const canSelectSchool = currentRole === UserRole.ADMIN;
-  const uniqueCourses = ['全部', ...Array.from(new Set(LEARNING_SKILLS_FULL.map(s => s.course)))];
   const teacherCourses = Array.from(new Set(LEARNING_SKILLS_FULL.map(s => s.course)));
 
-  const getScoreColor = (score: number) => {
-    if (score >= 85) return 'bg-green-500'; // Excellent
-    if (score >= 60) return 'bg-blue-400';  // Good
-    return 'bg-slate-300'; // Needs Improvement
+  // Enhanced Color Getter for Heatmap (Student)
+  const getSkillBlockStyle = (skill: any) => {
+    const catId = `${skill.course}-${skill.code.charAt(0)}`;
+    const isSelected = selectedCategories.includes(catId);
+
+    if (!isSelected) {
+        return 'bg-slate-100 text-slate-300 border-slate-200'; // Dimmed
+    }
+    if (skill.score >= 85) return 'bg-green-500 text-white border-green-600';
+    if (skill.score >= 60) return 'bg-blue-400 text-white border-blue-500';
+    return 'bg-slate-300 text-slate-500 border-slate-400';
   };
 
-  const getSkillOpacity = (skillCourse: string, currentFilter: string) => {
-     if (currentFilter === '全部') return 'opacity-100';
-     return currentFilter === skillCourse ? 'opacity-100 scale-105 shadow-md' : 'opacity-20 grayscale scale-95';
+  // Helper for Class Profile Heatmap color (Teacher)
+  const getTeacherSkillBlockStyle = (skill: any) => {
+      const isSelected = selectedTeacherNodes.includes(skill.subId);
+
+      if (!isSelected) {
+          return 'bg-slate-100 text-slate-300 border-slate-200'; // Dimmed
+      }
+      
+      const score = skill.score;
+      if (score >= 85) return 'bg-emerald-500 border-emerald-600 text-white';
+      if (score >= 60) return 'bg-blue-500 border-blue-600 text-white';
+      return 'bg-slate-300 border-slate-400 text-slate-500'; // Improve
   };
 
   const handleRegeneratePersona = () => {
@@ -469,53 +759,186 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
               </div>
            </div>
 
-           {/* 4. Skill Analysis (Dense Chip View with Tooltip) */}
-           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                 <h3 className="font-bold text-slate-700 flex items-center gap-2 text-xl">
+           {/* 4. Skill Analysis (Modified Layout) */}
+           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                 <h3 className="font-bold text-slate-800 flex items-center gap-2 text-xl">
                     <Target size={24} className="text-blue-600"/> {t.learning.skill_analysis.title}
                  </h3>
-                 <div className="flex gap-2 bg-slate-100 p-1 rounded-lg overflow-x-auto max-w-full custom-scrollbar">
-                    {uniqueCourses.map(course => (
-                       <button
-                          key={course}
-                          onClick={() => setSkillFilter(course)}
-                          className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all whitespace-nowrap ${
-                             skillFilter === course ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-                          }`}
-                       >
-                          {course}
-                       </button>
-                    ))}
+                 <div className="flex gap-4 text-xs font-medium text-slate-500">
+                    <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-500"></div> 优秀</span>
+                    <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-400"></div> 良好</span>
+                    <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-slate-300"></div> 待提升</span>
                  </div>
               </div>
-              
-              <div className="mb-4 flex gap-4 text-xs font-medium text-slate-500">
-                 <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-500"></div> 优秀</span>
-                 <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-400"></div> 良好</span>
-                 <span className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-slate-300"></div> 待提升</span>
-              </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                 {LEARNING_SKILLS_FULL.map((skill, i) => (
-                    <div 
-                       key={i}
-                       className={`group relative h-6 min-w-[3rem] px-1 rounded flex items-center justify-center text-[10px] font-bold text-white cursor-help transition-all duration-300 ${getScoreColor(skill.score)} ${getSkillOpacity(skill.course, skillFilter)}`}
-                    >
-                       {skill.code}
-                       <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-slate-800 text-white text-xs rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-lg">
-                          <div className="font-bold mb-0.5">{skill.name}</div>
-                          <div className="text-[10px] opacity-80 mb-1">{skill.course}</div>
-                          <div className="flex justify-between items-center gap-4">
-                            <span>掌握度:</span>
-                            <span className={`font-bold ${skill.score >= 85 ? 'text-green-400' : skill.score >= 60 ? 'text-blue-400' : 'text-slate-300'}`}>
-                              {skill.score}%
-                            </span>
-                          </div>
-                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+              <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px]">
+                 {/* Left: Course/Skill Tree */}
+                 <div className="lg:col-span-3 border-r border-slate-100 p-4 bg-slate-50/30 flex flex-col">
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                            <Layers size={14}/> 课程技能导航
+                        </div>
+                        <button 
+                            onClick={toggleAllStudentSelection}
+                            className="text-[10px] text-teal-600 font-bold hover:underline"
+                        >
+                            {selectedCategories.length > 0 ? '清空' : '全选'}
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                        {studentSkillTreeData.map(course => {
+                            const childIds = course.children.map(c => c.id);
+                            const selectedCount = childIds.filter(id => selectedCategories.includes(id)).length;
+                            const isAllSelected = selectedCount === childIds.length;
+                            const isIndeterminate = selectedCount > 0 && !isAllSelected;
+
+                            return (
+                                <div key={course.id} className="space-y-1">
+                                    {/* Course Node */}
+                                    <div className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-white transition-colors group">
+                                        <button onClick={(e) => { e.stopPropagation(); toggleStudentNodeExpand(course.id); }} className="text-slate-400 hover:text-slate-600 p-0.5">
+                                            {expandedNodes.includes(course.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                                        </button>
+                                        
+                                        <div 
+                                            className="cursor-pointer flex items-center gap-2 flex-1 p-1"
+                                            onClick={() => toggleStudentCourseSelection(course.id)}
+                                        >
+                                            <div className="relative flex items-center justify-center">
+                                                {isAllSelected ? (
+                                                    <CheckSquare size={16} className="text-teal-600 fill-teal-50"/>
+                                                ) : isIndeterminate ? (
+                                                    <div className="w-4 h-4 border-2 border-teal-500 rounded bg-teal-50 flex items-center justify-center">
+                                                        <div className="w-2 h-2 bg-teal-500 rounded-sm"></div>
+                                                    </div>
+                                                ) : (
+                                                    <Square size={16} className="text-slate-300"/>
+                                                )}
+                                            </div>
+                                            <BookOpen size={14} className="text-slate-400"/>
+                                            <span className={`text-sm font-bold truncate ${selectedCount > 0 ? 'text-teal-800' : 'text-slate-700'}`}>{course.name}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Category Nodes (Children) */}
+                                    {expandedNodes.includes(course.id) && (
+                                        <div className="ml-6 pl-2 border-l border-slate-200 space-y-1">
+                                            {course.children.map(cat => {
+                                                const isSelected = selectedCategories.includes(cat.id);
+                                                return (
+                                                    <div 
+                                                        key={cat.id} 
+                                                        className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-colors hover:bg-white`}
+                                                        onClick={() => toggleStudentCategorySelection(cat.id)}
+                                                    >
+                                                        {isSelected ? 
+                                                            <CheckSquare size={14} className="text-teal-600 fill-teal-50"/> : 
+                                                            <Square size={14} className="text-slate-300"/>
+                                                        }
+                                                        <span className={`text-xs truncate ${isSelected ? 'text-teal-700 font-medium' : 'text-slate-500'}`}>{cat.name}</span>
+                                                        <span className="text-[10px] bg-slate-100 px-1.5 rounded-full ml-auto text-slate-400">{cat.count}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                 </div>
+
+                 {/* Right: Content Area */}
+                 <div className="lg:col-span-9 p-6 flex flex-col gap-8">
+                    {/* 1. Heatmap Area */}
+                    <div>
+                       <div className="flex justify-between items-center mb-4">
+                           <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2">
+                              <Map size={16} className="text-blue-500"/> 技能掌握热力分布
+                           </h4>
+                           <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">选中展示: {activeSkills.length} 个技能点</span>
+                       </div>
+                       
+                       <div className="flex flex-wrap gap-1.5 min-h-[100px] content-start">
+                          {LEARNING_SKILLS_FULL.map((skill, i) => (
+                             <div 
+                                key={i}
+                                className={`group relative h-6 min-w-[3rem] px-1 rounded flex items-center justify-center text-[10px] font-bold transition-all duration-300 cursor-help ${getSkillBlockStyle(skill)}`}
+                             >
+                                {skill.code}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-max max-w-[200px] bg-slate-800 text-white text-xs rounded-lg p-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-lg">
+                                   <div className="font-bold mb-0.5">{skill.name}</div>
+                                   <div className="text-[10px] opacity-80 mb-1">{skill.course}</div>
+                                   <div className="flex justify-between items-center gap-4">
+                                     <span>掌握度:</span>
+                                     <span className={`font-bold ${skill.score >= 85 ? 'text-green-400' : skill.score >= 60 ? 'text-blue-400' : 'text-slate-300'}`}>
+                                       {skill.score}%
+                                     </span>
+                                   </div>
+                                   <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                </div>
+                             </div>
+                          ))}
                        </div>
                     </div>
-                 ))}
+
+                    {/* 2. Charts Area (Pie & Grouped Bar) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                        {/* Pie Chart */}
+                        <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                            <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                                <PieChart size={16} className="text-teal-500"/> 掌握度占比 (当前筛选)
+                            </h4>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsPieChart>
+                                        <Pie
+                                            data={skillPieData}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={0}
+                                            outerRadius={70}
+                                            paddingAngle={2}
+                                            dataKey="value"
+                                        >
+                                            {skillPieData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                                        <RechartsLegend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                    </RechartsPieChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Grouped Bar Chart */}
+                        <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                            <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                                <BarChart size={16} className="text-blue-500"/> 各课程技能掌握情况对比 (当前筛选)
+                            </h4>
+                            <div className="h-[200px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RechartsBarChart data={courseBarData} barGap={0}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                                        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                        <Tooltip 
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                                            cursor={{fill: '#f1f5f9'}}
+                                        />
+                                        <RechartsLegend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                        <RechartsBar dataKey="improve" name="待提升" fill="#cbd5e1" radius={[2, 2, 0, 0]} />
+                                        <RechartsBar dataKey="good" name="良好" fill="#60a5fa" radius={[2, 2, 0, 0]} />
+                                        <RechartsBar dataKey="excellent" name="优秀" fill="#10b981" radius={[2, 2, 0, 0]} />
+                                    </RechartsBarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
               </div>
            </div>
 
@@ -952,9 +1375,9 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                     </div>
                 </div>
 
-                {/* Point 4: Class Skill Heatmap Module (Now showing up to 100 points) */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                    <div className="flex justify-between items-center mb-8">
+                {/* Point 4: Class Skill Heatmap Module (Refactored Layout) */}
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-purple-100 rounded-lg text-purple-600"><Map size={20}/></div>
                             <div>
@@ -963,8 +1386,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                             </div>
                         </div>
                         <div className="flex gap-2">
-                             {/* Category indicators */}
-                             <div className="flex gap-3 text-[10px] font-black text-slate-400 uppercase tracking-wider items-center bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                             <div className="flex gap-3 text-[10px] font-black text-slate-400 uppercase tracking-wider items-center bg-white px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
                                 <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-slate-300"></div> 待提升</span>
                                 <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-blue-400"></div> 良好</span>
                                 <span className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-green-500"></div> 优秀</span>
@@ -972,33 +1394,174 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                         </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
-                        {LEARNING_SKILLS_FULL.filter(s => s.course === selectedProfileCourse).map((skill, i) => (
-                            <div 
-                                key={i}
-                                className={`group relative h-8 min-w-[3.5rem] px-2 rounded-lg flex items-center justify-center text-[10px] font-black text-white cursor-help transition-all duration-300 hover:scale-110 hover:z-10 shadow-sm ${getScoreColor(skill.score)}`}
-                            >
-                                {skill.code}
-                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-max max-w-[220px] bg-slate-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-white/10">
-                                    <div className="font-black mb-1">{skill.name}</div>
-                                    <div className="text-[10px] text-slate-400 mb-2">{skill.course}</div>
-                                    <div className="flex justify-between items-center bg-white/5 rounded-lg p-2">
-                                        <span className="text-slate-400">全班均值:</span>
-                                        <span className={`font-black text-sm ${skill.score >= 85 ? 'text-green-400' : skill.score >= 60 ? 'text-blue-400' : 'text-slate-300'}`}>
-                                            {skill.score}%
-                                        </span>
-                                    </div>
-                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px]">
+                        {/* Left: Tree Navigation */}
+                        <div className="lg:col-span-3 border-r border-slate-100 p-4 bg-slate-50/30 flex flex-col">
+                            <div className="flex justify-between items-center mb-4">
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <Layers size={14}/> 技能分类筛选
+                                </div>
+                                <button 
+                                    onClick={() => toggleTeacherSelection('root' as any, 'root')}
+                                    className="text-[10px] text-purple-600 font-bold hover:underline"
+                                >
+                                    {selectedTeacherNodes.length > 0 ? '清空' : '全选'}
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                                {treeData.map(cat => {
+                                    // Check if category is fully selected (all children selected)
+                                    const childIds = cat.children.map(c => c.id);
+                                    const isCatSelected = childIds.every(cid => selectedTeacherNodes.includes(cid));
+                                    const isIndeterminate = childIds.some(cid => selectedTeacherNodes.includes(cid)) && !isCatSelected;
+
+                                    return (
+                                        <div key={cat.id} className="space-y-1">
+                                            {/* Category Header */}
+                                            <div className="flex items-center gap-1 p-1.5 rounded-lg hover:bg-white transition-colors group">
+                                                <button onClick={(e) => { e.stopPropagation(); toggleTeacherNodeExpand(cat.id); }} className="text-slate-400 hover:text-slate-600 p-0.5">
+                                                    {expandedTeacherNodes.includes(cat.id) ? <ChevronDown size={14}/> : <ChevronRight size={14}/>}
+                                                </button>
+                                                
+                                                <div 
+                                                    className="cursor-pointer flex items-center gap-2 flex-1 p-1"
+                                                    onClick={() => toggleTeacherSelection(cat.id, 'cat')}
+                                                >
+                                                    <div className="relative flex items-center justify-center">
+                                                        {isCatSelected ? (
+                                                            <CheckSquare size={16} className="text-purple-600 fill-purple-50"/>
+                                                        ) : isIndeterminate ? (
+                                                            <div className="w-4 h-4 border-2 border-purple-500 rounded bg-purple-50 flex items-center justify-center">
+                                                                <div className="w-2 h-2 bg-purple-500 rounded-sm"></div>
+                                                            </div>
+                                                        ) : (
+                                                            <Square size={16} className="text-slate-300"/>
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-sm font-bold flex-1 ${isCatSelected || isIndeterminate ? 'text-purple-800' : 'text-slate-600'}`}>{cat.name}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Sub-categories */}
+                                            {expandedTeacherNodes.includes(cat.id) && (
+                                                <div className="ml-6 pl-2 border-l border-slate-200 space-y-1">
+                                                    {cat.children.map(sub => {
+                                                        const isSubSelected = selectedTeacherNodes.includes(sub.id);
+                                                        return (
+                                                            <div 
+                                                                key={sub.id} 
+                                                                className={`flex items-center gap-2 p-1.5 rounded-lg cursor-pointer transition-colors hover:bg-white`}
+                                                                onClick={() => toggleTeacherSelection(sub.id, 'sub')}
+                                                            >
+                                                                {isSubSelected ? 
+                                                                    <CheckSquare size={14} className="text-purple-600 fill-purple-50"/> : 
+                                                                    <Square size={14} className="text-slate-300"/>
+                                                                }
+                                                                <span className={`text-xs truncate ${isSubSelected ? 'text-purple-700 font-medium' : 'text-slate-500'}`}>{sub.name}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Right: Heatmap & Charts */}
+                        <div className="lg:col-span-9 p-6 flex flex-col gap-8">
+                            {/* Heatmap Area */}
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2">
+                                        <Map size={16} className="text-purple-500"/> 技能点热力分布
+                                    </h4>
+                                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">选中展示: {activeTeacherSkills.length} 个技能点</span>
+                                </div>
+                                
+                                <div className="flex flex-wrap gap-2 min-h-[100px] content-start">
+                                    {teacherSkillPoints.map((skill, i) => (
+                                        <div 
+                                            key={i}
+                                            className={`group relative h-8 min-w-[3.5rem] px-2 rounded-lg flex items-center justify-center text-[10px] font-black text-white cursor-help transition-all duration-300 hover:scale-110 hover:z-10 shadow-sm ${getTeacherSkillBlockStyle(skill)}`}
+                                        >
+                                            {skill.code}
+                                            {/* Tooltip only if selected/highlighted */}
+                                            {selectedTeacherNodes.includes(skill.subId) && (
+                                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-3 w-max max-w-[220px] bg-slate-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl border border-white/10">
+                                                    <div className="font-black mb-1 text-purple-200">{skill.name}</div>
+                                                    <div className="text-[10px] text-slate-400 mb-2">{skill.catName}</div>
+                                                    <div className="flex justify-between items-center bg-white/5 rounded-lg p-2">
+                                                        <span className="text-slate-400">全班均值:</span>
+                                                        <span className={`font-black text-sm ${skill.score >= 85 ? 'text-green-400' : skill.score >= 60 ? 'text-blue-400' : 'text-slate-300'}`}>
+                                                            {skill.score}%
+                                                        </span>
+                                                    </div>
+                                                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-8 border-transparent border-t-slate-900"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        ))}
-                        {/* If no skills found for this course in mock */}
-                        {LEARNING_SKILLS_FULL.filter(s => s.course === selectedProfileCourse).length === 0 && (
-                            <div className="w-full py-20 text-center bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
-                                <Search size={40} className="mx-auto text-slate-300 mb-4" />
-                                <p className="text-slate-400 font-bold">当前课程暂无已录入的班级技能数据</p>
+
+                            {/* Charts Area */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                                {/* Pie Chart */}
+                                <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                    <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                                        <PieChart size={16} className="text-purple-500"/> 掌握度占比 (当前筛选)
+                                    </h4>
+                                    <div className="h-[200px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RechartsPieChart>
+                                                <Pie
+                                                    data={teacherPieData}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={0}
+                                                    outerRadius={70}
+                                                    paddingAngle={2}
+                                                    dataKey="value"
+                                                >
+                                                    {teacherPieData.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={entry.color} stroke="white" strokeWidth={2} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }} />
+                                                <RechartsLegend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                            </RechartsPieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                {/* Grouped Bar Chart */}
+                                <div className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                                    <h4 className="font-bold text-slate-700 text-sm mb-2 flex items-center gap-2">
+                                        <BarChart size={16} className="text-blue-500"/> 各分类掌握情况对比 (当前筛选)
+                                    </h4>
+                                    <div className="h-[200px]">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RechartsBarChart data={teacherCategoryBarData} barGap={0}>
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                                <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} interval={0} />
+                                                <YAxis tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} />
+                                                <Tooltip 
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '12px' }}
+                                                    cursor={{fill: '#f1f5f9'}}
+                                                />
+                                                <RechartsLegend iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
+                                                <RechartsBar dataKey="improve" name="待提升" fill="#cbd5e1" radius={[2, 2, 0, 0]} />
+                                                <RechartsBar dataKey="good" name="良好" fill="#60a5fa" radius={[2, 2, 0, 0]} />
+                                                <RechartsBar dataKey="excellent" name="优秀" fill="#10b981" radius={[2, 2, 0, 0]} />
+                                            </RechartsBarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
 

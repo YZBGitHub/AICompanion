@@ -202,10 +202,10 @@ const ZH_TEXT = {
       item3_ex: '反映知识点掌握深度'
     },
     rank: {
-      courseTitle: '技能掌握排行',
-      school: '全校排行',
-      class: '班级排行',
-      platform: '全平台排行'
+      courseTitle: '课程掌握排行',
+      school: '校内排名',
+      class: '班级排名',
+      platform: '平台排名'
     },
     graph: {
       title: '知识图谱导航',
@@ -296,119 +296,68 @@ const ZH_TEXT = {
   },
   process: {
     nav: {
-      process_behavior: '行为与实验数据',
-      behavior: '学习行为数据',
-      soft_exp: '软件实验过程',
-      hard_exp: '硬件实操数据',
-      process_operation: '学习操作留痕',
-      learning_op: '教学环节操作',
-      soft_op: '软实验操作详情',
-      hard_op: '硬实验操作详情',
-      third_party: '外部数据接入',
-      questionnaire: '问卷量表数据',
-      other_platform: '第三方平台数据'
+      process_behavior: '过程行为数据',
+      behavior: '平台行为',
+      soft_exp: '软件实验',
+      hard_exp: '硬件实验',
+      process_operation: '过程操作数据',
+      learning_op: '学习操作',
+      soft_op: '软件实操',
+      hard_op: '硬件实操',
+      third_party: '第三方数据',
+      questionnaire: '问卷调查',
+      other_platform: '其他平台'
     },
     detail: {
-      title: '数据详情记录',
-      ai_total: '对话总数',
-      ai_words: '总字数',
-      ai_avg_words: '平均每条字数',
-      ai_interval: '平均问答间隔',
-      ai_sessions: '会话次数',
-      ai_sat: 'AI 满意度',
-      ai_qa_content: '具体问答内容',
-      sim_project: '仿真工程',
-      sim_stats: '操作统计',
-      sim_history: '历史操作列表',
-      total_score: '最终得分',
-      accuracy: '得分率',
-      q_no: '序号',
-      as_rule: '评分规则',
-      as_scene: '应用场景',
-      as_env: '所属环境',
-      as_score: '得分',
-      as_result: '判定',
-      as_skill: '关联技能点',
-      q_data: '答题数据',
-      q_score: '本节得分',
+      title: '详情',
+      ai_name: 'AI助手名称',
+      last_interact: '最近交互',
+      total_interact: '总交互次数',
+      sim_project: '仿真项目',
+      sim_stats: '仿真统计',
+      sim_history: '操作历史',
+      q_no: '题号',
       q_type: '题型',
-      q_content: '内容',
-      q_correct: '结果',
+      q_content: '题目内容',
+      q_correct: '是否正确',
       q_duration: '耗时',
       q_switch: '切屏次数',
       q_skill: '考察技能',
-      ai_name: '智能体名称',
-      last_interact: '最近交互时间',
-      total_interact: '交互总次数'
+      q_data: '作答数据',
+      q_score: '得分',
+      ai_total: '总交互次数',
+      ai_words: '总字数',
+      ai_avg_words: '平均字数',
+      ai_interval: '平均间隔',
+      ai_sessions: '会话数',
+      ai_sat: '满意度',
+      ai_qa_content: '问答内容',
+      total_score: '总分',
+      accuracy: '正确率',
+      as_rule: '评分规则',
+      as_scene: '场景',
+      as_env: '环境',
+      as_score: '得分',
+      as_result: '结果',
+      as_skill: '技能点'
     },
     filters: {
-      learnOpCategories: {
-        task: '单元任务',
-        ai: '课程AI问答',
-        auto_score: '自动评分',
-        note: '课程笔记'
-      },
-      subCategories: {
-        platform: '平台基础行为',
-        course: '课程学习行为',
-        ai: 'AI 互动行为'
-      },
-      softExpCategories: {
-        env: '实验环境活跃',
-        agent: '仿真助手交互'
-      },
-      hardExpCategories: {
-        interaction: '硬件登录交互',
-        capability: '设备控制能力'
-      },
+      subCategories: { platform: '平台行为', course: '课程行为', ai: 'AI交互' },
+      softExpCategories: { env: '环境数据', agent: '智能体数据' },
+      hardExpCategories: { interaction: '交互数据', capability: '能力数据' },
+      learnOpCategories: { task: '任务数据', ai: 'AI数据', auto_score: '自动评分', note: '笔记' },
       metric: '统计指标',
-      metrics_platform: {
-        login: '登录次数',
-        online_time: '在线时长',
-        page_view: '页面访问量'
-      },
-      metrics_course: {
-        submit: '提交次数',
-        video_time: '视频观看时长',
-        resource_download: '资源下载数'
-      },
-      metrics_ai: {
-        qa: '问答次数',
-        token: 'Token 消耗量',
-        duration: '对话时长'
-      },
-      metrics_soft_env: {
-        open_count: '环境打开次数',
-        runtime: '运行总时长',
-        error_count: '报错次数'
-      },
-      metrics_soft_agent: {
-        qa_count: '助手提问数',
-        solve_rate: '问题解决率'
-      },
-      metrics_hard_interaction: {
-        login: '智能体登录次数',
-        online: '在线时长',
-        command_count: '指令发送数'
-      },
-      metrics_hard_capability: {
-        query_status: '状态查询成功率',
-        control_exec: '控制指令执行率'
-      },
       data_dim: '数据维度',
-      dims: {
-        school: '学校',
-        class: '班级',
-        user: '学生个人',
-        course: '课程'
-      },
-      time_dim: '时间颗粒度',
-      times: {
-        hour: '按小时',
-        day: '按天',
-        month: '按月',
-        year: '按年'
-      }
+      dims: { school: '学校', class: '班级', user: '用户', course: '课程' },
+      time_dim: '时间维度',
+      times: { hour: '小时', day: '天', month: '月', year: '年' },
+      metrics_platform: { login: '登录次数', duration: '在线时长' },
+      metrics_course: { submit: '提交次数', duration: '学习时长' },
+      metrics_ai: { qa: '问答次数', words: '交互字数' },
+      metrics_soft_env: { open_count: '打开次数', duration: '运行时长' },
+      metrics_soft_agent: { qa_count: '问答次数', satisfaction: '满意度' },
+      metrics_hard_interaction: { login: '登录次数', online: '在线时长' },
+      metrics_hard_capability: { query_status: '状态查询', control: '控制指令' }
     },
     chart: {
       bar: '柱状图',
@@ -551,7 +500,7 @@ const EN_TEXT = {
       item3_ex: 'Knowledge depth'
     },
     rank: {
-      courseTitle: 'Mastery Rank',
+      courseTitle: 'Course Mastery Rank',
       school: 'School',
       class: 'Class',
       platform: 'Platform'
@@ -643,7 +592,77 @@ const EN_TEXT = {
       score_dist: 'Score Dist'
     }
   },
-  process: ZH_TEXT.process
+  process: {
+    nav: {
+      process_behavior: 'Process Behavior',
+      behavior: 'Platform',
+      soft_exp: 'Software Exp',
+      hard_exp: 'Hardware Exp',
+      process_operation: 'Process Operation',
+      learning_op: 'Learning Op',
+      soft_op: 'Software Op',
+      hard_op: 'Hardware Op',
+      third_party: 'Third Party',
+      questionnaire: 'Questionnaire',
+      other_platform: 'Other Platform'
+    },
+    detail: {
+      title: 'Detail',
+      ai_name: 'AI Name',
+      last_interact: 'Last Interaction',
+      total_interact: 'Total Interactions',
+      sim_project: 'Simulation Project',
+      sim_stats: 'Stats',
+      sim_history: 'History',
+      q_no: 'No.',
+      q_type: 'Type',
+      q_content: 'Content',
+      q_correct: 'Correct',
+      q_duration: 'Duration',
+      q_switch: 'Switch',
+      q_skill: 'Skill',
+      q_data: 'Data',
+      q_score: 'Score',
+      ai_total: 'Total',
+      ai_words: 'Words',
+      ai_avg_words: 'Avg Words',
+      ai_interval: 'Avg Interval',
+      ai_sessions: 'Sessions',
+      ai_sat: 'Satisfaction',
+      ai_qa_content: 'Q&A Content',
+      total_score: 'Total Score',
+      accuracy: 'Accuracy',
+      as_rule: 'Rule',
+      as_scene: 'Scene',
+      as_env: 'Env',
+      as_score: 'Score',
+      as_result: 'Result',
+      as_skill: 'Skill'
+    },
+    filters: {
+      subCategories: { platform: 'Platform', course: 'Course', ai: 'AI' },
+      softExpCategories: { env: 'Env Data', agent: 'Agent Data' },
+      hardExpCategories: { interaction: 'Interaction', capability: 'Capability' },
+      learnOpCategories: { task: 'Task', ai: 'AI', auto_score: 'Auto Score', note: 'Note' },
+      metric: 'Metric',
+      data_dim: 'Dimension',
+      dims: { school: 'School', class: 'Class', user: 'User', course: 'Course' },
+      time_dim: 'Time',
+      times: { hour: 'Hour', day: 'Day', month: 'Month', year: 'Year' },
+      metrics_platform: { login: 'Logins', duration: 'Online Time' },
+      metrics_course: { submit: 'Submits', duration: 'Study Time' },
+      metrics_ai: { qa: 'Q&A Count', words: 'Words' },
+      metrics_soft_env: { open_count: 'Opens', duration: 'Runtime' },
+      metrics_soft_agent: { qa_count: 'Q&A Count', satisfaction: 'Satisfaction' },
+      metrics_hard_interaction: { login: 'Logins', online: 'Online Time' },
+      metrics_hard_capability: { query_status: 'Query Status', control: 'Control' }
+    },
+    chart: {
+      bar: 'Bar Chart',
+      line: 'Line Chart',
+      table: 'Table'
+    }
+  }
 };
 
 export const TEXT = {
