@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Zap, CheckCircle, MessageSquare, Clock, Activity, Settings, Compass, Building2, Cpu, Award, Brain, AlertCircle, Share2, ThumbsUp, Star, Calendar, Flame, Code, User, GraduationCap, X } from 'lucide-react';
+import { Zap, CheckCircle, MessageSquare, Clock, Activity, Settings, Compass, Building2, Cpu, Award, Brain, Share2, ThumbsUp, Star, Flame, Code, User, GraduationCap, X } from 'lucide-react';
 import { Language } from '../types';
 import { TEXT, AVATARS } from '../constants';
 
@@ -17,6 +17,45 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<{sender: 'user'|'ai', text: string}[]>([]);
   
+  // Task switching state for demo
+  const [activeTaskIndices, setActiveTaskIndices] = useState<Record<string, number>>({
+    'smart_park': 0,
+    'embedded': 0
+  });
+  const [showTaskDropdown, setShowTaskDropdown] = useState<Record<string, boolean>>({
+    'smart_park': false,
+    'embedded': false
+  });
+
+  const courseTasks = {
+    'smart_park': [
+      { name: 'PLC系统调试', date: '01-15', progress: 80 },
+      { name: '传感器环境对接', date: '01-20', progress: 45 },
+      { name: '园区监控集成', date: '02-01', progress: 0 }
+    ],
+    'embedded': [
+      { name: '中断服务程序编写', date: '01-20', progress: 20 },
+      { name: '串口通信协议开发', date: '02-05', progress: 0 }
+    ]
+  };
+
+  const toggleTaskDropdown = (courseKey: string) => {
+    setShowTaskDropdown(prev => ({
+      ...prev,
+      [courseKey]: !prev[courseKey]
+    }));
+  };
+
+  const switchTask = (courseKey: string, index: number) => {
+    setActiveTaskIndices(prev => ({
+      ...prev,
+      [courseKey]: index
+    }));
+    setShowTaskDropdown(prev => ({
+      ...prev,
+      [courseKey]: false
+    }));
+  };
   // Reuse ranking data locally or import if large
   const getRankingData = (lang: Language) => ({
     skill: [
@@ -209,45 +248,132 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
               
               <div className="space-y-6">
                 <div>
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{t.companion.paths.courses}</h4>
-                    <div className="space-y-4">
-                      <div className="group border border-slate-100 rounded-xl p-3 hover:shadow-md transition-all bg-slate-50/50">
-                          <div className="flex gap-3 mb-2">
-                            <div className="w-12 h-12 rounded-lg bg-teal-100 shrink-0 flex items-center justify-center">
-                                <Building2 className="text-teal-600" size={24} />
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">{t.companion.paths.courses}</h4>
+                    <div className="space-y-6">
+                      {/* Smart Park Course */}
+                      <div className="group border border-slate-100 rounded-2xl p-4 hover:shadow-lg transition-all bg-white relative overflow-visible">
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="flex gap-4 items-center min-w-0">
+                              <div className="w-12 h-12 rounded-xl bg-teal-50 shrink-0 flex items-center justify-center border border-teal-100">
+                                  <Building2 className="text-teal-600" size={24} />
+                              </div>
+                              <h5 className="font-bold text-slate-800 text-base truncate">{t.companion.paths.smart_park}</h5>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h5 className="font-bold text-slate-800 text-sm truncate">{t.companion.paths.smart_park}</h5>
-                                <div className="flex justify-between items-center mt-1">
-                                  <span className="text-xs text-slate-500">Progress</span>
-                                  <span className="text-xs font-bold text-teal-600">80%</span>
-                                </div>
+                            <div className="relative">
+                               <button 
+                                 onClick={() => toggleTaskDropdown('smart_park')}
+                                 className="text-xs font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-2 py-1.5 rounded-lg border border-teal-200 transition-all flex items-center gap-1"
+                               >
+                                 {activeTaskIndices.smart_park + 1}/{courseTasks.smart_park.length}
+                                 <Settings size={12} className={showTaskDropdown.smart_park ? 'rotate-90' : ''}/>
+                               </button>
+                               
+                               {/* Dropdown Menu */}
+                               {showTaskDropdown.smart_park && (
+                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                   {courseTasks.smart_park.map((task, idx) => (
+                                     <button 
+                                       key={idx}
+                                       onClick={() => switchTask('smart_park', idx)}
+                                       className={`w-full text-left px-4 py-2 text-xs hover:bg-slate-50 transition-colors ${activeTaskIndices.smart_park === idx ? 'text-teal-600 font-bold bg-teal-50/50' : 'text-slate-600'}`}
+                                     >
+                                       {idx + 1}. {task.name}
+                                     </button>
+                                   ))}
+                                 </div>
+                               )}
                             </div>
                           </div>
-                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden mb-3">
-                            <div className="bg-teal-500 h-1.5 rounded-full" style={{ width: '80%' }}></div>
+
+                          {/* Task Info Row - Above Progress */}
+                          <div className="flex flex-col gap-1.5 mb-4 p-2.5 bg-slate-50/50 rounded-xl border border-slate-100">
+                            <div className="text-xs text-slate-500 font-medium flex items-center gap-2">
+                              <span className="bg-white text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 text-[10px] whitespace-nowrap shadow-sm">{t.companion.paths.task_name}</span>
+                              <span className="truncate text-slate-700 font-bold">{courseTasks.smart_park[activeTaskIndices.smart_park].name}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
+                              <span>{t.companion.paths.issue_time}:</span>
+                              <span>{courseTasks.smart_park[activeTaskIndices.smart_park].date}</span>
+                            </div>
                           </div>
-                          <button className="w-full text-xs bg-teal-500 text-white py-1.5 rounded-lg hover:bg-teal-600 transition-colors font-medium">
+                          
+                          <div className="space-y-2 mb-4">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-500 font-medium">{t.companion.paths.progress}</span>
+                              <span className="font-bold text-teal-600 font-mono">{courseTasks.smart_park[activeTaskIndices.smart_park].progress}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className="bg-teal-500 h-2 rounded-full transition-all duration-500 ease-out" 
+                                style={{ width: `${courseTasks.smart_park[activeTaskIndices.smart_park].progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <button className="w-full text-sm bg-teal-600 text-white py-2.5 rounded-xl hover:bg-teal-700 transition-all font-bold shadow-md shadow-teal-100">
                             {t.companion.paths.status.continuing}
                           </button>
                       </div>
-                      <div className="group border border-slate-100 rounded-xl p-3 hover:shadow-md transition-all bg-slate-50/50">
-                          <div className="flex gap-3 mb-2">
-                            <div className="w-12 h-12 rounded-lg bg-orange-100 shrink-0 flex items-center justify-center">
-                                <Cpu className="text-orange-600" size={24} />
+
+                      {/* Embedded Dev Course */}
+                      <div className="group border border-slate-100 rounded-2xl p-4 hover:shadow-lg transition-all bg-white relative overflow-visible">
+                          <div className="flex justify-between items-center mb-4">
+                            <div className="flex gap-4 items-center min-w-0">
+                              <div className="w-12 h-12 rounded-xl bg-orange-50 shrink-0 flex items-center justify-center border border-orange-100">
+                                  <Cpu className="text-orange-600" size={24} />
+                              </div>
+                              <h5 className="font-bold text-slate-800 text-base truncate">{t.companion.paths.embedded}</h5>
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <h5 className="font-bold text-slate-800 text-sm truncate">{t.companion.paths.embedded}</h5>
-                                <div className="flex justify-between items-center mt-1">
-                                  <span className="text-xs text-slate-500">Progress</span>
-                                  <span className="text-xs font-bold text-orange-600">20%</span>
-                                </div>
+                            <div className="relative">
+                               <button 
+                                 onClick={() => toggleTaskDropdown('embedded')}
+                                 className="text-xs font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-2 py-1.5 rounded-lg border border-orange-200 transition-all flex items-center gap-1"
+                               >
+                                 {activeTaskIndices.embedded + 1}/{courseTasks.embedded.length}
+                                 <Settings size={12} className={showTaskDropdown.embedded ? 'rotate-90' : ''}/>
+                               </button>
+                               
+                               {/* Dropdown Menu */}
+                               {showTaskDropdown.embedded && (
+                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl z-50 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                                   {courseTasks.embedded.map((task, idx) => (
+                                     <button 
+                                       key={idx}
+                                       onClick={() => switchTask('embedded', idx)}
+                                       className={`w-full text-left px-4 py-2 text-xs hover:bg-slate-50 transition-colors ${activeTaskIndices.embedded === idx ? 'text-orange-600 font-bold bg-orange-50/50' : 'text-slate-600'}`}
+                                     >
+                                       {idx + 1}. {task.name}
+                                     </button>
+                                   ))}
+                                 </div>
+                               )}
                             </div>
                           </div>
-                          <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden mb-3">
-                            <div className="bg-orange-400 h-1.5 rounded-full" style={{ width: '20%' }}></div>
+
+                          {/* Task Info Row - Above Progress */}
+                          <div className="flex flex-col gap-1.5 mb-4 p-2.5 bg-slate-50/50 rounded-xl border border-slate-100">
+                            <div className="text-xs text-slate-500 font-medium flex items-center gap-2">
+                              <span className="bg-white text-slate-600 px-1.5 py-0.5 rounded border border-slate-200 text-[10px] whitespace-nowrap shadow-sm">{t.companion.paths.task_name}</span>
+                              <span className="truncate text-slate-700 font-bold">{courseTasks.embedded[activeTaskIndices.embedded].name}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 font-mono flex items-center gap-1.5">
+                              <span>{t.companion.paths.issue_time}:</span>
+                              <span>{courseTasks.embedded[activeTaskIndices.embedded].date}</span>
+                            </div>
                           </div>
-                          <button className="w-full text-xs bg-orange-500 text-white py-1.5 rounded-lg hover:bg-orange-600 transition-colors font-medium">
+
+                          <div className="space-y-2 mb-4">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-slate-500 font-medium">{t.companion.paths.progress}</span>
+                              <span className="font-bold text-orange-600 font-mono">{courseTasks.embedded[activeTaskIndices.embedded].progress}%</span>
+                            </div>
+                            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                              <div 
+                                className="bg-orange-500 h-2 rounded-full transition-all duration-500 ease-out" 
+                                style={{ width: `${courseTasks.embedded[activeTaskIndices.embedded].progress}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <button className="w-full text-sm bg-orange-600 text-white py-2.5 rounded-xl hover:bg-orange-700 transition-all font-bold shadow-md shadow-orange-100">
                             {t.companion.paths.status.continuing}
                           </button>
                       </div>
@@ -256,24 +382,52 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
 
                 <div>
                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{t.companion.paths.exams}</h4>
-                    <div className="border border-red-100 rounded-xl p-3 bg-red-50/30 hover:shadow-md transition-all relative overflow-hidden">
-                      <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-bl-lg font-bold">
-                          3 {t.companion.paths.days_left}
-                      </div>
-                      <div className="flex gap-3 mb-2 pt-2">
-                          <div className="w-12 h-12 rounded-lg bg-red-100 shrink-0 flex items-center justify-center">
-                            <Award className="text-red-600" size={24} />
-                          </div>
-                          <div className="flex-1">
-                            <h5 className="font-bold text-slate-800 text-sm">{t.companion.paths.python_cert}</h5>
-                            <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                                <Clock size={10} /> {t.companion.paths.start_time}: 12/01
+                    <div className="space-y-3">
+                      {/* Upcoming Exam */}
+                      <div className="border border-red-100 rounded-xl p-3 bg-red-50/30 hover:shadow-md transition-all relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-bl-lg font-bold">
+                            3 {t.companion.paths.days_left}
+                        </div>
+                        <div className="flex gap-3 mb-2 pt-2">
+                            <div className="w-10 h-10 rounded-lg bg-red-100 shrink-0 flex items-center justify-center">
+                              <Award className="text-red-600" size={20} />
                             </div>
-                          </div>
+                            <div className="flex-1">
+                              <h5 className="font-bold text-slate-800 text-sm">{t.companion.paths.python_cert}</h5>
+                              <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1">
+                                  <Clock size={10} /> {t.companion.paths.start_time}: 12/01
+                              </div>
+                            </div>
+                        </div>
+                        <button className="w-full text-xs border border-red-200 text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium">
+                            {t.companion.paths.status.exam}
+                        </button>
                       </div>
-                      <button className="w-full text-xs border border-red-200 text-red-600 py-1.5 rounded-lg hover:bg-red-50 transition-colors font-medium mt-1">
-                          {t.companion.paths.status.exam}
-                      </button>
+
+                      {/* Completed Exam Result */}
+                      <div className="border border-green-100 rounded-xl p-3 bg-green-50/30 hover:shadow-md transition-all relative overflow-hidden">
+                        <div className="absolute top-0 right-0 bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-bl-lg font-bold">
+                            {t.companion.paths.completed_exam}
+                        </div>
+                        <div className="flex gap-3 mb-2 pt-2">
+                            <div className="w-10 h-10 rounded-lg bg-green-100 shrink-0 flex items-center justify-center">
+                              <CheckCircle className="text-green-600" size={20} />
+                            </div>
+                            <div className="flex-1">
+                              <h5 className="font-bold text-slate-800 text-sm">IoT实训项目一期考核</h5>
+                              <div className="flex gap-3 mt-1">
+                                <div className="text-[10px] text-slate-600">
+                                  <span className="text-slate-400 mr-1">{t.companion.paths.score}:</span>
+                                  <span className="font-bold text-green-600 text-xs">92</span>
+                                </div>
+                                <div className="text-[10px] text-slate-600">
+                                  <span className="text-slate-400 mr-1">{t.companion.paths.rank}:</span>
+                                  <span className="font-bold text-blue-600 text-xs">5/120</span>
+                                </div>
+                              </div>
+                            </div>
+                        </div>
+                      </div>
                     </div>
                 </div>
               </div>
@@ -383,32 +537,7 @@ const AICompanion: React.FC<{ language: Language }> = ({ language }) => {
               </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 shrink-0">
-              <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <Calendar size={20} className="text-teal-500" /> {t.companion.tasks.title}
-              </h3>
-              <div className="space-y-4">
-                {[
-                  { txt: t.companion.tasks.t1, done: true },
-                  { txt: t.companion.tasks.t2, done: false },
-                  { txt: t.companion.tasks.t3, done: false },
-                ].map((task, i) => (
-                  <div key={i} className="flex items-start justify-between gap-2 group">
-                    <div className="flex items-start gap-3">
-                      <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${task.done ? 'bg-teal-500 border-teal-500' : 'border-slate-300'}`}>
-                        {task.done && <CheckCircle size={12} className="text-white" />}
-                      </div>
-                      <span className={`text-sm ${task.done ? 'text-slate-400 line-through' : 'text-slate-700 font-medium'}`}>{task.txt}</span>
-                    </div>
-                    {!task.done && (
-                      <button className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded hover:bg-blue-100 font-bold whitespace-nowrap">
-                          {t.companion.tasks.continue}
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-          </div>
+
 
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-1 flex flex-col">
               <div className="mb-4">

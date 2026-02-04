@@ -125,7 +125,7 @@ const ZH_TEXT = {
   companion: {
     config: {
       title: '配置 AI 学伴',
-      nickname: '你的昵称',
+      nickname: '学伴昵称',
       avatar: '学伴头像',
       personality: '性格设定',
       p_options: [
@@ -158,10 +158,16 @@ const ZH_TEXT = {
         continuing: '继续学习',
         exam: '去参加考试'
       },
+      progress: '进度',
       exams: '近期考试安排',
       days_left: '天后开始',
       python_cert: 'Python 技能认证',
-      start_time: '开始时间'
+      start_time: '开始时间',
+      task_name: '任务名称',
+      issue_time: '下发时间',
+      completed_exam: '已完成考试',
+      score: '成绩',
+      rank: '排名'
     },
     chat: {
       header: 'AI 学伴在线',
@@ -456,10 +462,16 @@ const EN_TEXT = {
         continuing: 'Continue',
         exam: 'Go to Exam'
       },
+      progress: 'Progress',
       exams: 'Recent Exams',
       days_left: 'days left',
       python_cert: 'Python Cert',
       start_time: 'Start',
+      task_name: 'Task Name',
+      issue_time: 'Issued at',
+      completed_exam: 'Completed',
+      score: 'Score',
+      rank: 'Rank'
     },
     chat: {
       header: 'AI Companion Online',

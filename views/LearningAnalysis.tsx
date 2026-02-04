@@ -33,7 +33,8 @@ import {
   TEXT, AI_PERSONAS, CLASS_STATS, LEARNING_COURSES, 
   LEARNING_EXAMS, LEARNING_SKILLS_FULL, WEAKNESS_DATA, JOB_RECOMMENDATIONS, 
   CLASS_SKILL_RANKING, CLASS_STUDENT_RANKING,
-  CLASS_COURSE_STATS, CLASS_EXAM_LIST, CLASS_WEAKNESS_RADAR, SDT_WARNING_STUDENTS 
+  CLASS_COURSE_STATS, CLASS_EXAM_LIST, CLASS_WEAKNESS_RADAR, SDT_WARNING_STUDENTS,
+  MOCK_TASKS 
 } from '../constants';
 import { StudentRadarChart, ClassPerformanceChart, TrendChart, SkillRadarChart } from '../components/DashboardCharts';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip, Legend as RechartsLegend, PieChart as RechartsPieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, AreaChart, Area, BarChart as RechartsBarChart, Bar as RechartsBar } from 'recharts';
@@ -70,6 +71,8 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
   const [teacherTab, setTeacherTab] = useState<'assistant' | 'profile'>('assistant');
   const [selectedPersonaId, setSelectedPersonaId] = useState('geek'); 
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [assessmentTab, setAssessmentTab] = useState<'exam' | 'task'>('exam');
+  const [engagementPeriod, setEngagementPeriod] = useState<'7d' | '30d' | '3m' | '6m'>('30d');
   
   // Selection State for Teacher/Admin
   const [selectedSchool, setSelectedSchool] = useState(MOCK_SCHOOLS[0]);
@@ -107,6 +110,43 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
     { id: 'G', name: '系统集成', children: [{id: 'G-1', name: '项目实战'}, {id: 'G-2', name: '系统调试'}] },
     { id: 'H', name: '职业素养', children: [{id: 'H-1', name: '工程伦理'}, {id: 'H-2', name: '团队协作'}] },
   ], []);
+
+  // --- Student View Course Tasks State ---
+  const [courseTaskIndices, setCourseTaskIndices] = useState<Record<number, number>>({
+    1: 0,
+    2: 0
+  });
+  const [showTaskDropdowns, setShowTaskDropdowns] = useState<Record<number, boolean>>({});
+
+  const courseTasksData: Record<number, { name: string, progress: number }[]> = {
+    1: [
+      { name: 'PLC系统调试', progress: 85 },
+      { name: '园区网关部署', progress: 40 },
+      { name: 'ThingsBoard仪表板', progress: 10 }
+    ],
+    2: [
+      { name: '中断服务程序编写', progress: 45 },
+      { name: '串口通信开发', progress: 15 }
+    ]
+  };
+
+  const toggleTaskDropdown = (courseId: number) => {
+    setShowTaskDropdowns(prev => ({
+      ...prev,
+      [courseId]: !prev[courseId]
+    }));
+  };
+
+  const selectTask = (courseId: number, index: number) => {
+    setCourseTaskIndices(prev => ({
+      ...prev,
+      [courseId]: index
+    }));
+    setShowTaskDropdowns(prev => ({
+      ...prev,
+      [courseId]: false
+    }));
+  };
 
   // Initialize expanded nodes and select all categories by default (Student)
   useEffect(() => {
@@ -499,74 +539,160 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                  <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
                     <BookOpen size={20} className="text-teal-600"/> {t.learning.overview.courses}
                  </h3>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {LEARNING_COURSES.map((course) => (
-                       <div key={course.id} className="border border-slate-100 rounded-xl p-4 bg-slate-50 hover:shadow-md transition-all group">
-                          <div className="flex gap-3 mb-3">
-                             <div className={`w-10 h-10 rounded-lg ${course.cover} flex items-center justify-center shrink-0`}>
-                                <course.icon className={course.iconColor} size={32} />
-                             </div>
-                             <div className="min-w-0">
-                                <h4 className="font-bold text-slate-800 text-sm truncate" title={course.name}>{course.name}</h4>
-                                <p className="text-xs text-slate-500 truncate">{course.major}</p>
-                             </div>
-                          </div>
-                          {course.status === 'in_progress' ? (
-                             <div>
-                                <div className="flex justify-between text-xs mb-1">
-                                   <span className="text-slate-500">学习进度</span>
-                                   <span className="font-bold text-teal-600">{course.progress}%</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {LEARNING_COURSES.map((course) => {
+                       const tasks = courseTasksData[course.id];
+                       const activeIndex = courseTaskIndices[course.id] || 0;
+                       const currentTask = tasks ? tasks[activeIndex] : null;
+                       const hasMultipleTasks = tasks && tasks.length > 1;
+
+                       return (
+                        <div key={course.id} className="border border-slate-100 rounded-xl p-4 bg-slate-50 hover:shadow-md transition-all group relative">
+                           <div className="flex justify-between items-start mb-3">
+                              <div className="flex gap-3">
+                                <div className={`w-10 h-10 rounded-lg ${course.cover} flex items-center justify-center shrink-0`}>
+                                   <course.icon className={course.iconColor} size={32} />
                                 </div>
-                                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                                   <div className="bg-teal-500 h-1.5 rounded-full" style={{width: `${course.progress}%`}}></div>
+                                <div className="min-w-0">
+                                   <h4 className="font-bold text-slate-800 text-sm truncate" title={course.name}>{course.name}</h4>
+                                   <p className="text-xs text-slate-500 truncate">{course.major}</p>
                                 </div>
-                             </div>
-                          ) : (
-                             <div className="flex justify-between items-center mt-2">
-                                <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">已完成</span>
-                                <div className="text-xs text-slate-500 font-medium">排名: <span className="text-orange-500 font-bold">{course.rank}</span></div>
-                             </div>
-                          )}
-                       </div>
-                    ))}
-                 </div>
+                              </div>
+                              
+                              {course.status === 'in_progress' && hasMultipleTasks && (
+                                <div className="relative">
+                                  <button 
+                                    onClick={() => toggleTaskDropdown(course.id)}
+                                    className="text-[10px] font-bold text-teal-600 bg-white border border-teal-100 px-1.5 py-0.5 rounded shadow-sm hover:bg-teal-50 flex items-center gap-1"
+                                  >
+                                    {activeIndex + 1}/{tasks.length}
+                                    <ChevronDown size={10} className={showTaskDropdowns[course.id] ? 'rotate-180' : ''}/>
+                                  </button>
+                                  {showTaskDropdowns[course.id] && (
+                                    <div className="absolute right-0 top-full mt-1 w-40 bg-white border border-slate-200 rounded-lg shadow-xl z-20 py-1">
+                                      {tasks.map((t, idx) => (
+                                        <button 
+                                          key={idx}
+                                          onClick={() => selectTask(course.id, idx)}
+                                          className={`w-full text-left px-3 py-1.5 text-[10px] hover:bg-slate-50 transition-colors ${activeIndex === idx ? 'text-teal-600 font-bold bg-teal-50' : 'text-slate-600'}`}
+                                        >
+                                          {idx + 1}. {t.name}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                           </div>
+
+                           {course.status === 'in_progress' ? (
+                              <div>
+                                 {currentTask && (
+                                   <div className="mb-2 flex items-center gap-1.5">
+                                      <span className="text-[10px] bg-teal-100 text-teal-700 px-1 py-0.5 rounded font-bold uppercase whitespace-nowrap">{t.companion.paths.task_name}</span>
+                                      <span className="text-[10px] text-slate-600 font-medium truncate" title={currentTask.name}>{currentTask.name}</span>
+                                   </div>
+                                 )}
+                                 <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-slate-500">{t.companion.paths.progress}</span>
+                                    <span className="font-bold text-teal-600">{currentTask ? currentTask.progress : course.progress}%</span>
+                                 </div>
+                                 <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                    <div 
+                                      className="bg-teal-500 h-1.5 rounded-full transition-all duration-500" 
+                                      style={{width: `${currentTask ? currentTask.progress : course.progress}%`}}
+                                    ></div>
+                                 </div>
+                              </div>
+                           ) : (
+                              <div className="flex justify-between items-center mt-2">
+                                 <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">已完成</span>
+                                 <div className="text-xs text-slate-500 font-medium">排名: <span className="text-orange-500 font-bold">{course.rank}</span></div>
+                              </div>
+                           )}
+                        </div>
+                       );
+                    })}
+                  </div>
               </div>
 
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                 <h3 className="font-bold text-slate-700 mb-4 flex items-center gap-2">
-                    <Award size={20} className="text-purple-600"/> {t.learning.overview.exams}
-                 </h3>
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-bold text-slate-700 flex items-center gap-2">
+                       <Award size={20} className="text-purple-600"/> {t.learning.overview.exams}
+                    </h3>
+                    <div className="flex bg-slate-100 p-1 rounded-lg">
+                       <button 
+                         onClick={() => setAssessmentTab('exam')}
+                         className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${assessmentTab === 'exam' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                       >
+                         考试/测验
+                       </button>
+                       <button 
+                         onClick={() => setAssessmentTab('task')}
+                         className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${assessmentTab === 'task' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                       >
+                         课程任务
+                       </button>
+                    </div>
+                 </div>
                  <div className="space-y-4 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
-                    {LEARNING_EXAMS.pending.map((exam, i) => (
-                       <div key={`p-${i}`} className="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/50">
-                          <div className="flex items-center gap-3">
-                             <div className="bg-red-100 p-2 rounded-lg text-red-600"><Clock size={18}/></div>
-                             <div>
-                                <div className="font-bold text-slate-700 text-sm">{exam.name}</div>
-                                <div className="text-xs text-slate-500">{exam.startTime}</div>
-                             </div>
-                          </div>
-                          <div className="text-center">
-                             <div className="text-xs text-slate-400 font-bold uppercase">倒计时</div>
-                             <div className="font-bold text-red-600">{exam.daysLeft} 天</div>
-                          </div>
-                       </div>
-                    ))}
-                    {LEARNING_EXAMS.completed.map((exam, i) => (
-                       <div key={`c-${i}`} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
-                          <div className="flex items-center gap-3">
-                             <div className="bg-green-100 p-2 rounded-lg text-green-600"><CheckCircle size={18}/></div>
-                             <div>
-                                <div className="font-bold text-slate-700 text-sm">{exam.name}</div>
-                                <div className="text-xs text-slate-500">完成于 {exam.time}</div>
-                             </div>
-                          </div>
-                          <div className="text-right">
-                             <div className="font-bold text-slate-800 text-lg">{exam.score} <span className="text-xs font-normal text-slate-400">分</span></div>
-                             <div className="text-xs text-slate-500">班级第 {exam.rank}</div>
-                          </div>
-                       </div>
-                    ))}
+                    {assessmentTab === 'exam' ? (
+                       <>
+                        {LEARNING_EXAMS.pending.map((exam, i) => (
+                           <div key={`p-${i}`} className="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/50">
+                              <div className="flex items-center gap-3">
+                                 <div className="bg-red-100 p-2 rounded-lg text-red-600"><Clock size={18}/></div>
+                                 <div className="min-w-0">
+                                    <div className="font-bold text-slate-700 text-sm truncate">{exam.name}</div>
+                                    <div className="text-xs text-slate-500 truncate">{exam.startTime}</div>
+                                 </div>
+                              </div>
+                              <div className="text-center shrink-0 ml-2">
+                                 <div className="text-[10px] text-slate-400 font-bold uppercase">倒计时</div>
+                                 <div className="font-bold text-red-600 text-sm">{exam.daysLeft} 天</div>
+                              </div>
+                           </div>
+                        ))}
+                        {LEARNING_EXAMS.completed.map((exam, i) => (
+                           <div key={`c-${i}`} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
+                              <div className="flex items-center gap-3">
+                                 <div className="bg-green-100 p-2 rounded-lg text-green-600"><CheckCircle size={18}/></div>
+                                 <div className="min-w-0">
+                                    <div className="font-bold text-slate-700 text-sm truncate">{exam.name}</div>
+                                    <div className="text-xs text-slate-500 truncate">完成于 {exam.time}</div>
+                                 </div>
+                              </div>
+                              <div className="text-right shrink-0 ml-2">
+                                 <div className="font-bold text-slate-800 text-lg">{exam.score} <span className="text-xs font-normal text-slate-400">分</span></div>
+                                 <div className="text-xs text-slate-500">班级第 {exam.rank}</div>
+                              </div>
+                           </div>
+                        ))}
+                       </>
+                    ) : (
+                       <>
+                        {MOCK_TASKS.map((task, i) => (
+                           <div key={`t-${i}`} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-white hover:shadow-sm transition-all">
+                              <div className="flex items-center gap-3">
+                                 <div className="bg-blue-100 p-2 rounded-lg text-blue-600"><FileText size={18}/></div>
+                                 <div className="min-w-0">
+                                    <div className="font-bold text-slate-700 text-sm truncate">{task.name}</div>
+                                    <div className="text-[10px] text-slate-500 truncate">{task.course} | {task.time}</div>
+                                 </div>
+                              </div>
+                              <div className="text-right shrink-0 ml-2">
+                                 <div className="font-bold text-slate-800 text-lg">{task.score} <span className="text-xs font-normal text-slate-400">分</span></div>
+                                 <div className="text-[10px] text-teal-600 font-bold">{task.status}</div>
+                              </div>
+                           </div>
+                        ))}
+                        {/* Fill with more tasks for full effect if needed */}
+                        <div className="p-4 text-center border-2 border-dashed border-slate-100 rounded-xl">
+                           <span className="text-xs text-slate-400 italic">更多任务正在统计中...</span>
+                        </div>
+                       </>
+                    )}
                  </div>
               </div>
            </div>
@@ -578,12 +704,34 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
 
               <div className="relative z-10">
                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                    <div>
-                       <h3 className="text-2xl font-black flex items-center gap-3 text-white">
-                          <Activity className="text-teal-400" size={28}/> {t.learning.engagement.title}
-                       </h3>
-                       <p className="text-slate-400 text-sm mt-1">{t.learning.engagement.summary}</p>
-                    </div>
+                     <div>
+                        <h3 className="text-2xl font-black flex items-center gap-3 text-white">
+                           <Activity className="text-teal-400" size={28}/> {t.learning.engagement.title}
+                        </h3>
+                        <div className="flex flex-col gap-4 mt-2">
+                           <p className="text-slate-400 text-sm">
+                              {language === 'zh' ? `近${engagementPeriod === '7d' ? '7天' : engagementPeriod === '30d' ? '30天' : engagementPeriod === '3m' ? '3个月' : '半年'}全过程参与概影` : t.learning.engagement.summary}
+                           </p>
+                           <div className="flex bg-white/5 p-1 rounded-xl w-fit border border-white/10">
+                              {[
+                                 { id: '7d', label: language === 'zh' ? '最近7天' : '7 Days' },
+                                 { id: '30d', label: language === 'zh' ? '最近30天' : '30 Days' },
+                                 { id: '3m', label: language === 'zh' ? '最近3个月' : '3 Months' },
+                                 { id: '6m', label: language === 'zh' ? '最近半年' : '6 Months' }
+                              ].map((item) => (
+                                 <button
+                                    key={item.id}
+                                    onClick={() => setEngagementPeriod(item.id as any)}
+                                    className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                       engagementPeriod === item.id ? 'bg-teal-500 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
+                                    }`}
+                                 >
+                                    {item.label}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
                     <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 text-center flex items-center gap-4 px-6">
                        <div className="w-12 h-12 bg-teal-500/20 rounded-full flex items-center justify-center text-teal-400 shadow-inner">
                           <Trophy size={28} />
@@ -1141,32 +1289,29 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                   </button>
                </div>
 
-               <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
-                   <div className="flex items-center gap-2">
-                      <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">当前班级</div>
-                      <select 
-                          value={selectedClass} 
-                          onChange={e => setSelectedClass(e.target.value)}
-                          className="border-none bg-slate-50 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-700 focus:ring-0 outline-none cursor-pointer hover:bg-slate-100"
-                      >
-                          {MOCK_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                   </div>
+                  <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
+                    <div className="flex items-center gap-2">
+                       <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析班级</div>
+                       <select 
+                           value={selectedClass} 
+                           onChange={e => setSelectedClass(e.target.value)}
+                           className="border-none bg-blue-50 rounded-lg px-3 py-1.5 text-xs font-bold text-blue-700 focus:ring-0 outline-none cursor-pointer hover:bg-blue-100 transition-colors"
+                       >
+                           {MOCK_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
+                       </select>
+                    </div>
 
-                   {/* NEW: Course Filter for Teacher Profile */}
-                   {teacherTab === 'profile' && (
-                     <div className="flex items-center gap-2 border-l border-slate-100 pl-4">
-                        <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析课程</div>
-                        <select 
-                            value={selectedProfileCourse} 
-                            onChange={e => setSelectedProfileCourse(e.target.value)}
-                            className="border-none bg-teal-50 rounded-lg px-3 py-1.5 text-xs font-bold text-teal-700 focus:ring-0 outline-none cursor-pointer hover:bg-teal-100 transition-colors"
-                        >
-                            {teacherCourses.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                     </div>
-                   )}
-               </div>
+                    <div className="flex items-center gap-2 border-l border-slate-100 pl-4">
+                       <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析课程</div>
+                       <select 
+                           value={selectedProfileCourse} 
+                           onChange={e => setSelectedProfileCourse(e.target.value)}
+                           className="border-none bg-teal-50 rounded-lg px-3 py-1.5 text-xs font-bold text-teal-700 focus:ring-0 outline-none cursor-pointer hover:bg-teal-100 transition-colors"
+                       >
+                           {teacherCourses.map(c => <option key={c} value={c}>{c}</option>)}
+                       </select>
+                    </div>
+                </div>
            </div>
 
            {/* 1. AI Analysis Assistant */}
@@ -1207,28 +1352,9 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                       </h4>
                       <div className="space-y-6">
                          <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">分析班级 (多选)</label>
-                            <div className="space-y-1 max-h-[150px] overflow-y-auto pr-2">
-                               {MOCK_CLASSES.map(cls => (
-                                  <label key={cls} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
-                                     <input 
-                                       type="checkbox" 
-                                       checked={selectedAiClasses.includes(cls)}
-                                       onChange={e => {
-                                          if(e.target.checked) setSelectedAiClasses([...selectedAiClasses, cls]);
-                                          else setSelectedAiClasses(selectedAiClasses.filter(c => c !== cls));
-                                       }}
-                                       className="rounded text-teal-600 focus:ring-teal-500"
-                                     />
-                                     <span className="text-sm text-slate-700">{cls}</span>
-                                  </label>
-                               ))}
-                            </div>
-                         </div>
-                         <div>
                             <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">数据项 (多选)</label>
                             <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2">
-                               {['技能点数据', '自动评分结果', '考试/测验成绩', '全过程数据-学习行为', '全过程数据-软件实验', '全过程数据-硬件实验'].map(type => (
+                               {['技能点数据', '课程考试任务', '全过程数据-学习行为', '全过程数据-软件实验', '全过程数据-硬件实验'].map(type => (
                                   <label key={type} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
                                      <input 
                                        type="checkbox" 
