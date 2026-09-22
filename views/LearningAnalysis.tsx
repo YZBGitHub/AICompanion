@@ -1,3 +1,4 @@
+import TeacherWorkspace from '../components/TeacherWorkspace';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
@@ -6,8 +7,7 @@ import {
   Smile, Heart, Briefcase, BarChart2, Shield, Search, Compass,
   Calendar, Clock, CheckCircle, ChevronRight, DollarSign,
   Lightbulb, MousePointerClick, Monitor, Cpu, RefreshCw, Sparkles, Rocket,
-  Send, Bot, Layout, PieChart, Info, Settings,
-  AlertTriangle, Route, BarChart,
+  Bot, Layout, PieChart, Info, AlertTriangle, Route, BarChart,
   LineChart as LineChartIcon,
   Circle,
   LogIn,
@@ -68,27 +68,18 @@ interface LearningAnalysisProps {
 const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRole = UserRole.STUDENT }) => {
   const t = TEXT[language];
   const [viewMode, setViewMode] = useState<'student' | 'teacher'>(currentRole === UserRole.TEACHER ? 'teacher' : 'student');
-  const [teacherTab, setTeacherTab] = useState<'assistant' | 'profile'>('assistant');
   const [selectedPersonaId, setSelectedPersonaId] = useState('geek'); 
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [assessmentTab, setAssessmentTab] = useState<'exam' | 'task'>('exam');
   const [engagementPeriod, setEngagementPeriod] = useState<'7d' | '30d' | '3m' | '6m'>('30d');
   
   // Selection State for Teacher/Admin
-  const [selectedSchool, setSelectedSchool] = useState(MOCK_SCHOOLS[0]);
-  const [selectedClass, setSelectedClass] = useState(MOCK_CLASSES[0]);
+  const [selectedSchool, setSelectedSchool] = useState(currentRole === UserRole.TEACHER ? '山东商业职业技术大学-aixb' : MOCK_SCHOOLS[0]);
+  const [selectedClass, setSelectedClass] = useState(currentRole === UserRole.TEACHER ? '物联网1班' : MOCK_CLASSES[0]);
   const [selectedStudent, setSelectedStudent] = useState(MOCK_STUDENTS[0]);
 
   // NEW: Course Filter for Class Profile
   const [selectedProfileCourse, setSelectedProfileCourse] = useState('《智慧园区》');
-
-  // Teacher AI Assistant State
-  const [aiChatInput, setAiChatInput] = useState('');
-  const [aiChatHistory, setAiChatHistory] = useState<{sender: 'user'|'ai', text: string}[]>([
-    { sender: 'ai', text: t.learning.teacher.ai.welcome },
-  ]);
-  const [selectedAiClasses, setSelectedAiClasses] = useState<string[]>(MOCK_CLASSES.slice(0, 1));
-  const [selectedAiDataTypes, setSelectedAiDataTypes] = useState<string[]>(['技能点数据', '全过程数据-学习行为']);
 
   // --- Student View Skill Tree State ---
   const [expandedNodes, setExpandedNodes] = useState<string[]>([]);
@@ -440,25 +431,11 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
      }, 1500);
   };
 
-  const handleAiChatSend = () => {
-     if (!aiChatInput.trim()) return;
-     const newHistory = [...aiChatHistory, { sender: 'user' as const, text: aiChatInput }];
-     setAiChatHistory(newHistory);
-     setAiChatInput('');
-     setTimeout(() => {
-        setAiChatHistory([...newHistory, { sender: 'ai', text: 'AI正在分析您选择的数据...' }]);
-     }, 1000);
-  };
-
-  const handleClearHistory = () => {
-    setAiChatHistory([{ sender: 'ai', text: t.learning.teacher.ai.welcome }]);
-  };
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in min-h-screen">
+    <div className={viewMode === 'teacher' ? 'teacher-learning-page' : 'max-w-7xl mx-auto px-6 py-8 animate-fade-in min-h-screen'}>
       
       {/* View Switcher Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className={viewMode === 'teacher' ? 'teacher-view-switch' : 'flex justify-between items-center mb-8'}>
         <h2 className="text-3xl font-bold text-slate-800">{t.learning.title}</h2>
         <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-200 flex">
            <button 
@@ -470,7 +447,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
              <User size={18}/> {t.learning.views.student}
            </button>
            <button 
-             onClick={() => setViewMode('teacher')}
+             onClick={() => { setViewMode('teacher'); setSelectedSchool('山东商业职业技术大学-aixb'); setSelectedClass('物联网1班'); }}
              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-bold transition-all ${
                viewMode === 'teacher' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-slate-50'
              }`}
@@ -1266,165 +1243,12 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
            </div>
         </div>
       ) : (
-        // ================= TEACHER VIEW =================
-        <div className="space-y-8">
-           {/* Tab Navigation & Controls */}
-           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-               <div className="bg-white p-1 rounded-xl shadow-sm border border-slate-200 inline-flex">
-                  <button 
-                    onClick={() => setTeacherTab('assistant')}
-                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${
-                      teacherTab === 'assistant' ? 'bg-teal-50 text-teal-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Bot size={18}/> {t.learning.teacher.tabs.assistant}
-                  </button>
-                  <button 
-                    onClick={() => setTeacherTab('profile')}
-                    className={`px-6 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center gap-2 ${
-                      teacherTab === 'profile' ? 'bg-teal-50 text-teal-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                    }`}
-                  >
-                    <Layout size={18}/> {t.learning.teacher.tabs.profile}
-                  </button>
-               </div>
-
-                  <div className="flex items-center gap-4 bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm">
-                    <div className="flex items-center gap-2">
-                       <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析班级</div>
-                       <select 
-                           value={selectedClass} 
-                           onChange={e => setSelectedClass(e.target.value)}
-                           className="border-none bg-blue-50 rounded-lg px-3 py-1.5 text-xs font-bold text-blue-700 focus:ring-0 outline-none cursor-pointer hover:bg-blue-100 transition-colors"
-                       >
-                           {MOCK_CLASSES.map(c => <option key={c} value={c}>{c}</option>)}
-                       </select>
-                    </div>
-
-                    <div className="flex items-center gap-2 border-l border-slate-100 pl-4">
-                       <div className="px-2 text-slate-500 text-[10px] font-black uppercase tracking-widest border-r border-slate-100">分析课程</div>
-                       <select 
-                           value={selectedProfileCourse} 
-                           onChange={e => setSelectedProfileCourse(e.target.value)}
-                           className="border-none bg-teal-50 rounded-lg px-3 py-1.5 text-xs font-bold text-teal-700 focus:ring-0 outline-none cursor-pointer hover:bg-teal-100 transition-colors"
-                       >
-                           {teacherCourses.map(c => <option key={c} value={c}>{c}</option>)}
-                       </select>
-                    </div>
-                </div>
-           </div>
-
-           {/* 1. AI Analysis Assistant */}
-           {teacherTab === 'assistant' && (
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[700px]">
-                {/* Left: Summary & Config */}
-                <div className="lg:col-span-1 space-y-6 flex flex-col">
-                   <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg">
-                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                         <Bot size={24}/> {t.learning.teacher.ai.welcome}
-                      </h3>
-                      <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/20 text-sm leading-relaxed text-indigo-100">
-                         {t.learning.teacher.ai.summary}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mt-6">
-                         <div className="bg-white/10 p-3 rounded-lg text-center">
-                            <div className="text-xs opacity-70 mb-1">总班级</div>
-                            <div className="text-2xl font-bold">4</div>
-                         </div>
-                         <div className="bg-white/10 p-3 rounded-lg text-center">
-                            <div className="text-xs opacity-70 mb-1">总学生</div>
-                            <div className="text-2xl font-bold">34</div>
-                         </div>
-                         <div className="bg-white/10 p-3 rounded-lg text-center">
-                            <div className="text-xs opacity-70 mb-1">完成率</div>
-                            <div className="text-2xl font-bold">84%</div>
-                         </div>
-                         <div className="bg-white/10 p-3 rounded-lg text-center">
-                            <div className="text-xs opacity-70 mb-1">平均分</div>
-                            <div className="text-2xl font-bold">67</div>
-                         </div>
-                      </div>
-                   </div>
-
-                   <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex-1 overflow-y-auto custom-scrollbar">
-                      <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                         <Settings size={18} className="text-slate-400"/> 对话数据源配置
-                      </h4>
-                      <div className="space-y-6">
-                         <div>
-                            <label className="text-xs font-bold text-slate-500 uppercase mb-2 block">数据项 (多选)</label>
-                            <div className="space-y-1 max-h-[200px] overflow-y-auto pr-2">
-                               {['技能点数据', '课程考试任务', '全过程数据-学习行为', '全过程数据-软件实验', '全过程数据-硬件实验'].map(type => (
-                                  <label key={type} className="flex items-center gap-2 p-2 rounded hover:bg-slate-50 cursor-pointer">
-                                     <input 
-                                       type="checkbox" 
-                                       checked={selectedAiDataTypes.includes(type)}
-                                       onChange={e => {
-                                          if(e.target.checked) setSelectedAiDataTypes([...selectedAiDataTypes, type]);
-                                          else setSelectedAiDataTypes(selectedAiDataTypes.filter(t => t !== type));
-                                       }}
-                                       className="rounded text-teal-600 focus:ring-teal-500"
-                                     />
-                                     <span className="text-sm text-slate-700">{type}</span>
-                                  </label>
-                               ))}
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-                </div>
-
-                {/* Right: Chat Interface */}
-                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden">
-                   <div className="p-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
-                      <div className="font-bold text-slate-700 flex items-center gap-2">
-                         <Bot size={20} className="text-teal-600"/> 智能分析对话
-                      </div>
-                      <button 
-                        onClick={handleClearHistory}
-                        className="text-xs text-slate-400 hover:text-red-500 flex items-center gap-1 transition-colors"
-                      >
-                         <RefreshCw size={12}/> 清除历史
-                      </button>
-                   </div>
-                   
-                   <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
-                      {aiChatHistory.map((msg, i) => (
-                         <div key={i} className={`flex gap-4 ${msg.sender === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${msg.sender === 'ai' ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-200 text-slate-600'}`}>
-                               {msg.sender === 'ai' ? <Bot size={20}/> : <User size={20}/>}
-                            </div>
-                            <div className={`p-4 rounded-2xl max-w-[80%] text-sm shadow-sm ${msg.sender === 'ai' ? 'bg-white border border-slate-200 text-slate-700 rounded-tl-none' : 'bg-indigo-600 text-white rounded-tr-none'}`}>
-                               {msg.text}
-                            </div>
-                         </div>
-                      ))}
-                   </div>
-
-                   <div className="p-4 bg-white border-t border-slate-100">
-                      <div className="flex gap-3">
-                         <input 
-                           type="text" 
-                           value={aiChatInput}
-                           onChange={e => setAiChatInput(e.target.value)}
-                           onKeyDown={e => e.key === 'Enter' && handleAiChatSend()}
-                           className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                           placeholder={t.learning.teacher.ai.chat_placeholder}
-                         />
-                         <button 
-                           onClick={handleAiChatSend}
-                           className="bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-xl transition-colors shadow-lg shadow-indigo-500/30"
-                         >
-                            <Send size={20}/>
-                         </button>
-                      </div>
-                   </div>
-                </div>
-             </div>
-           )}
-
-           {/* 2. Class Profile (Modified based on User Requirements) */}
-           {teacherTab === 'profile' && (
+        <TeacherWorkspace
+          school={selectedSchool} className={selectedClass} course={selectedProfileCourse}
+          schools={['山东商业职业技术大学-aixb', ...MOCK_SCHOOLS]}
+          classes={['物联网1班', ...MOCK_CLASSES]} courses={teacherCourses}
+          onSchoolChange={setSelectedSchool} onClassChange={setSelectedClass} onCourseChange={setSelectedProfileCourse}
+        >
              <div className="space-y-6">
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -1884,8 +1708,7 @@ const LearningAnalysis: React.FC<LearningAnalysisProps> = ({ language, currentRo
                     </div>
                 </div>
              </div>
-           )}
-        </div>
+        </TeacherWorkspace>
       )}
 
     </div>

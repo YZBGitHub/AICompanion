@@ -167,11 +167,12 @@ interface DynamicProcessChartProps {
   data: { name: string; value: number }[];
   type: 'bar' | 'line';
   color?: string;
+  height?: number;
 }
 
-export const DynamicProcessChart: React.FC<DynamicProcessChartProps> = ({ data, type, color = '#0d9488' }) => {
+export const DynamicProcessChart: React.FC<DynamicProcessChartProps> = ({ data, type, color = '#0d9488', height = 350 }) => {
   return (
-    <ResponsiveContainer width="100%" height={350}>
+    <ResponsiveContainer width="100%" height={height}>
       {type === 'bar' ? (
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />

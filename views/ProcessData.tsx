@@ -1,14 +1,20 @@
 
 import React, { useState, useEffect } from 'react';
-import { Filter, Search, BarChart, Activity, Database, Users, ChevronDown, ChevronRight, Layers, BookOpen, Brain, Download, X, FileSpreadsheet, Monitor, Cpu, Code, Zap, FileJson, List, Eye, MessageSquare, Clock, ThumbsUp, User, Terminal, PenTool, FileText, AlertTriangle, PlayCircle, Timer, AlertCircle, CheckCircle, Wifi, Settings, PieChart as PieChartIcon } from 'lucide-react';
+import './ProcessData.css';
+import { METRIC_DEFAULTS, LOGIN_SCREENSHOT_ROWS, getMetricRows, metricUnit } from '../data/processMetricData';
+import ProcessMetricTable from '../components/ProcessMetricTable';
+import ProcessDataCatalog from '../components/ProcessDataCatalog';
+import { getProcessCatalog, ProcessCatalogGroup, ProcessCatalogItem } from '../data/processCatalog';
+import { ArrowLeft, Grid2X2, Search, BarChart, Activity, Database, ChevronDown, ChevronRight, Layers, Brain, Download, X, FileSpreadsheet, Cpu, FileJson, List, Eye, MessageSquare, Clock, ThumbsUp, User, Terminal, PenTool, FileText, AlertTriangle, PlayCircle, Timer, AlertCircle, Wifi, Settings, PieChart as PieChartIcon } from 'lucide-react';
 import { Language } from '../types';
 import { TEXT, MOCK_TASKS, MOCK_IOT_QUESTIONS, MOCK_AI_ASSISTANTS_LIST, MOCK_AI_QA_DETAILS, MOCK_SOFT_ENV_OPTIONS, MOCK_SOFT_OP_TASKS, MOCK_SOFT_OP_DETAILS, MOCK_AUTO_SCORE_TASKS, MOCK_AUTO_SCORE_DETAILS, MOCK_HARD_ENV_OPTIONS, MOCK_HARD_OP_TASKS, MOCK_HARD_OP_DETAILS, MOCK_NOTE_TASKS, MOCK_NOTE_DETAILS } from '../constants';
 import { DynamicProcessChart } from '../components/DashboardCharts';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend as RechartsLegend, BarChart as RechartsBar, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 
 // Mock Data for Cascading Dropdowns
-const MOCK_SCHOOLS = ['深圳职业技术大学', '金华职业技术学院', '南京信息职院'];
+const MOCK_SCHOOLS = [METRIC_DEFAULTS.school, '深圳职业技术大学', '金华职业技术学院', '南京信息职院'];
 const MOCK_CLASSES = {
+  [METRIC_DEFAULTS.school]: [METRIC_DEFAULTS.className],
   '深圳职业技术大学': ['物联网1班', '物联网2班', '计算机1班'],
   '金华职业技术学院': ['电信1班', '电信2班'],
   '南京信息职院': ['软件1班', '软件2班']
@@ -32,7 +38,9 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
   
   // Navigation State
   const [activeMenuId, setActiveMenuId] = useState('behavior');
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['process_behavior', 'process_operation', 'third_party']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['process_behavior', 'process_operation']);
+
+  const [catalogSelection, setCatalogSelection] = useState<{ groupId: string; item: ProcessCatalogItem } | null>(null);
 
   // Behavior Data State
   const [behaviorSubTab, setBehaviorSubTab] = useState('platform'); // platform | course | ai
@@ -50,15 +58,15 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
   const [mockQuestionResults, setMockQuestionResults] = useState<any[]>([]);
 
   // Filters State (Shared)
-  const [metric, setMetric] = useState('login'); 
-  const [dimension, setDimension] = useState('school'); // school | class | user | course
-  const [timeGranularity, setTimeGranularity] = useState('day'); // hour | day | month | year
-  const [chartType, setChartType] = useState('bar'); // bar | line | table
+  const [metric, setMetric] = useState('login');
+  const [dimension, setDimension] = useState('user'); // school | class | user | course
+  const [timeGranularity, setTimeGranularity] = useState('year'); // hour | day | month | year
+  const [chartType, setChartType] = useState('table'); // bar | line | table
   
   // Selection State
   const [selectedSchool, setSelectedSchool] = useState(MOCK_SCHOOLS[0]);
-  const [selectedClass, setSelectedClass] = useState(MOCK_CLASSES['深圳职业技术大学'][0]);
-  const [selectedUser, setSelectedUser] = useState(MOCK_USERS['物联网1班'][0]);
+  const [selectedClass, setSelectedClass] = useState(METRIC_DEFAULTS.className);
+  const [selectedUser, setSelectedUser] = useState('');
   const [selectedCourse, setSelectedCourse] = useState(MOCK_COURSES[0]);
 
   // Agent/Env Selection State
@@ -67,11 +75,9 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
   const [selectedSoftEnv, setSelectedSoftEnv] = useState(MOCK_SOFT_ENV_OPTIONS[0]);
   const [selectedHardEnv, setSelectedHardEnv] = useState(MOCK_HARD_ENV_OPTIONS[0]);
 
-  // Date Range (default 7 days)
-  const today = new Date().toISOString().split('T')[0];
-  const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const [startDate, setStartDate] = useState(lastWeek);
-  const [endDate, setEndDate] = useState(today);
+  // Date range captured in the saved page
+  const [startDate, setStartDate] = useState(METRIC_DEFAULTS.startDate);
+  const [endDate, setEndDate] = useState(METRIC_DEFAULTS.endDate);
 
   // Export Modal State
   const [showExportModal, setShowExportModal] = useState(false);
@@ -79,6 +85,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
 
   // --- Effects to reset metrics when menu changes ---
   useEffect(() => {
+    setCatalogSelection(null);
     if (activeMenuId === 'behavior') {
         handleSubTabChange('platform');
     } else if (activeMenuId === 'soft_exp') {
@@ -87,29 +94,6 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
         handleHardExpSubTabChange('interaction');
     }
   }, [activeMenuId]);
-
-  // Helper to generate dynamic data based on selection
-  const generateChartData = () => {
-    // Generate X-axis labels based on time granularity
-    let labels: string[] = [];
-    if (timeGranularity === 'hour') {
-        labels = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
-    } else if (timeGranularity === 'day') {
-       labels = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
-    } else if (timeGranularity === 'month') {
-       labels = ['1月', '2月', '3月', '4月', '5月', '6月'];
-    } else {
-       labels = ['2023年', '2024年', '2025年'];
-    }
-
-    // Generate random values
-    return labels.map(label => ({
-      name: label,
-      value: Math.floor(Math.random() * 100) + 20
-    }));
-  };
-
-  const chartData = generateChartData();
 
   // Sidebar Menu Logic
   const toggleExpand = (id: string) => {
@@ -141,15 +125,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
         { id: 'hard_op', label: t.process.nav.hard_op }
       ]
     },
-    { 
-      id: 'third_party', 
-      label: t.process.nav.third_party, 
-      icon: <Users size={18} />,
-      children: [
-        { id: 'questionnaire', label: t.process.nav.questionnaire },
-        { id: 'other_platform', label: t.process.nav.other_platform }
-      ]
-    },
+
   ];
 
   // Logic to switch sub-tabs and reset incompatible metrics
@@ -158,7 +134,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
     // Reset metric to first available
     if (sub === 'platform') setMetric('login');
     if (sub === 'course') setMetric('submit');
-    if (sub === 'ai') setMetric('qa');
+    if (sub === 'ai') setMetric('qa_count');
     
     // Reset dimension if 'course' was selected but not available in 'platform'
     if (sub === 'platform' && dimension === 'course') setDimension('school');
@@ -208,8 +184,56 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
   const showHardAgentSelector = activeMenuId === 'hard_exp';
   const showAgentSelector = showSoftAgentSelector || showHardAgentSelector;
 
+  const catalog = getProcessCatalog(language);
+  const catalogGroups = catalog[activeMenuId];
+  const activeMenuLabel = NAV_STRUCTURE.flatMap(group => group.children).find(item => item.id === activeMenuId)?.label || '';
+  const selectedGroup = catalogGroups.find(group => group.id === catalogSelection?.groupId);
+  const selectedLabel = isComplexDashboard
+    ? selectedGroup?.items.find(item => item.id === metric)?.label
+    : activeMenuId === 'soft_op' ? (selectedSoftEnv === '全部' ? (language === 'zh' ? '全部记录' : 'All records') : selectedSoftEnv)
+    : activeMenuId === 'hard_op' ? (selectedHardEnv === '全部' ? (language === 'zh' ? '全部记录' : 'All records') : selectedHardEnv)
+    : catalogSelection?.item.label;
+
+  const metricFilters = {
+    menu: activeMenuId, group: catalogSelection?.groupId || behaviorSubTab, metric,
+    metricLabel: selectedLabel || '', timeGranularity, dimension, school: selectedSchool,
+    className: selectedClass, user: selectedUser, course: selectedCourse, startDate, endDate,
+    agent: activeMenuId === 'soft_exp' ? selectedSoftAgent : selectedHardAgent,
+  };
+  const metricResult = getMetricRows(metricFilters);
+  const chartData = metricResult.rows.map(row => ({ name: dimension === 'user' ? row.user : row.time, value: row.value }));
+  const metricUsers = metricResult.source === 'screenshot'
+    ? LOGIN_SCREENSHOT_ROWS.map(([name]) => name)
+    : LOGIN_SCREENSHOT_ROWS.map((_, index) => `演示用户${String(index + 1).padStart(2, '0')}`);
+  const resetMetricDefaults = () => {
+    setChartType('table');
+    setDimension('user');
+    setTimeGranularity('year');
+    setSelectedSchool(METRIC_DEFAULTS.school);
+    setSelectedClass(METRIC_DEFAULTS.className);
+    setSelectedUser('');
+    setStartDate(METRIC_DEFAULTS.startDate);
+    setEndDate(METRIC_DEFAULTS.endDate);
+    setSelectedSoftAgent(MOCK_SOFT_AGENTS[0]);
+    setSelectedHardAgent(MOCK_HARD_AGENTS[0]);
+  };
+
+  const openCatalogItem = (group: ProcessCatalogGroup, item: ProcessCatalogItem) => {
+    if (activeMenuId === 'behavior') handleSubTabChange(group.id);
+    if (activeMenuId === 'soft_exp') handleSoftExpSubTabChange(group.id);
+    if (activeMenuId === 'hard_exp') handleHardExpSubTabChange(group.id);
+    if (group.kind === 'metric') { setMetric(item.id); resetMetricDefaults(); }
+    if (activeMenuId === 'learning_op') setLearningOpSubTab(group.id);
+    if (activeMenuId === 'soft_op') setSelectedSoftEnv(item.environment || '全部');
+    if (activeMenuId === 'hard_op') setSelectedHardEnv(item.environment || '全部');
+    setCatalogSelection({ groupId: group.id, item });
+  };
+  const directoryRecords = <T extends { id: number },>(rows: T[]): T[] =>
+    catalogSelection?.item.recordId === undefined ? rows : rows.filter(row => row.id === catalogSelection.item.recordId);
+
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 animate-fade-in flex flex-col md:flex-row gap-8 min-h-screen relative">
+    <div className="process-page">
+       <div className="process-layout">
        {/* Export Modal */}
        {showExportModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
@@ -927,16 +951,16 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
        )}
 
        {/* Sidebar Navigation */}
-       <div className="w-full md:w-64 shrink-0 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden h-fit">
-          <div className="p-4 bg-teal-50 border-b border-teal-100 font-bold text-teal-800 flex items-center gap-2">
-             <Filter size={20} /> 数据分类
+       <div className="process-sidebar">
+          <div className="process-sidebar-title">
+             <Grid2X2 size={20} /> 数据分类
           </div>
-          <div className="p-2 space-y-1">
+          <div className="process-menu">
              {NAV_STRUCTURE.map(item => (
                 <div key={item.id}>
                    <button
                       onClick={() => item.children ? toggleExpand(item.id) : setActiveMenuId(item.id)}
-                      className={`w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition-all ${
+                      className={`process-menu-group ${
                          activeMenuId === item.id 
                             ? 'bg-teal-50 text-teal-700 shadow-sm border border-teal-100 font-bold' 
                             : 'text-slate-600 hover:bg-slate-50'
@@ -953,14 +977,14 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                    
                    {/* Render Children */}
                    {item.children && expandedMenus.includes(item.id) && (
-                      <div className="ml-4 pl-4 border-l-2 border-slate-100 space-y-1 mt-1">
+                      <div className="process-menu-children">
                          {item.children.map(child => (
                             <button
                                key={child.id}
-                               onClick={() => setActiveMenuId(child.id)}
-                               className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${
+                               onClick={() => { setActiveMenuId(child.id); setCatalogSelection(null); }}
+                               className={`process-menu-item ${
                                   activeMenuId === child.id 
-                                     ? 'text-teal-600 bg-teal-50/50 font-bold' 
+                                     ? 'is-active'
                                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
                                }`}
                             >
@@ -975,59 +999,32 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
        </div>
 
        {/* Main Content Area */}
-       <div className="flex-1 space-y-6 min-w-0">
-          <div className="flex justify-between items-center">
-             <h2 className="text-2xl font-bold text-slate-800">
-               {NAV_STRUCTURE.find(p => p.id === activeMenuId)?.label || 
-                NAV_STRUCTURE.flatMap(p => p.children || []).find(c => c.id === activeMenuId)?.label}
-             </h2>
-             <div className="flex items-center gap-3">
-               <div className="text-sm text-slate-500 hidden md:block">
-                  数据更新时间: {new Date().toLocaleString()}
-               </div>
-               <button 
-                  onClick={() => setShowExportModal(true)}
-                  className="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-3 py-1.5 rounded-lg text-sm font-bold transition-all shadow-sm"
-               >
-                  <Download size={16} className="text-teal-600"/> 导出Excel
-               </button>
-             </div>
-          </div>
+       <div className="process-content">
+          {!catalogSelection ? (
+            <ProcessDataCatalog title={activeMenuLabel} groups={catalogGroups} language={language} onOpen={openCatalogItem} />
+          ) : (
+            <>
+              <div className="process-detail-heading">
+                <button className="process-back" onClick={() => setCatalogSelection(null)}><ArrowLeft size={16} />{language === 'zh' ? '返回数据目录' : 'Back to catalog'}</button>
+                <div className="process-breadcrumb"><span>{activeMenuLabel}</span><ChevronRight size={14} /><span>{selectedGroup?.label}</span><ChevronRight size={14} /><strong>{selectedLabel}</strong></div>
+              </div>
+          {!isComplexDashboard && (
+            <div className="process-content-toolbar">
+              <span className="process-updated">数据更新时间: {new Date().toLocaleString()}</span>
+              <button onClick={() => setShowExportModal(true)} className="process-export"><Download size={14} /> 导出Excel</button>
+            </div>
+          )}
 
           {isOpDashboard ? (
              <>
-               {/* 1. Sub-Tabs */}
-               {activeMenuId === 'learning_op' && (
-                 <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex w-fit overflow-x-auto">
-                     {[
-                       { id: 'task', label: t.process.filters.learnOpCategories.task, icon: <List size={16}/> },
-                       { id: 'ai', label: t.process.filters.learnOpCategories.ai, icon: <Brain size={16}/> },
-                       { id: 'auto_score', label: t.process.filters.learnOpCategories.auto_score, icon: <CheckCircle size={16}/> },
-                       { id: 'note', label: t.process.filters.learnOpCategories.note, icon: <PenTool size={16}/> }
-                     ].map(tab => (
-                       <button
-                         key={tab.id}
-                         onClick={() => setLearningOpSubTab(tab.id)}
-                         className={`flex items-center gap-2 px-6 py-2.5 text-sm font-bold rounded-lg transition-all whitespace-nowrap ${
-                           learningOpSubTab === tab.id 
-                             ? 'bg-teal-600 text-white shadow-md' 
-                             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                         }`}
-                       >
-                         {tab.icon} {tab.label}
-                       </button>
-                     ))}
-                 </div>
-               )}
-
                {/* 2. Filter Panel */}
-               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+               <div className="process-filter-panel process-operation-filters">
                   <div className={`grid grid-cols-1 sm:grid-cols-2 ${activeMenuId === 'soft_op' || activeMenuId === 'hard_op' ? 'md:grid-cols-4' : 'md:grid-cols-3'} gap-4 items-end`}>
                      <div>
                          <label className="text-xs font-medium text-slate-500 mb-1 block">选择学校</label>
                          <select 
                             value={selectedSchool}
-                            onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(MOCK_CLASSES[e.target.value as keyof typeof MOCK_CLASSES][0]); }}
+                            onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(MOCK_CLASSES[e.target.value as keyof typeof MOCK_CLASSES]?.[0] || ''); }}
                             className="w-full p-2 bg-slate-50 border border-slate-200 rounded-lg text-sm"
                          >
                             {MOCK_SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
@@ -1110,7 +1107,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                               {MOCK_SOFT_OP_TASKS.map((task) => (
+                               {MOCK_SOFT_OP_TASKS.filter(task => selectedSoftEnv === '全部' || task.env === selectedSoftEnv).map((task) => (
                                   <tr key={task.id} className="hover:bg-slate-50 transition-colors">
                                      <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{task.time}</td>
                                      <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{task.course}</td>
@@ -1153,7 +1150,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                               {MOCK_HARD_OP_TASKS.map((task) => (
+                               {MOCK_HARD_OP_TASKS.filter(task => selectedHardEnv === '全部' || task.env === selectedHardEnv).map((task) => (
                                   <tr key={task.id} className="hover:bg-slate-50 transition-colors">
                                      <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{task.time}</td>
                                      <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{task.course}</td>
@@ -1194,7 +1191,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                               </tr>
                            </thead>
                            <tbody className="divide-y divide-slate-100">
-                              {MOCK_NOTE_TASKS.map((note) => (
+                              {directoryRecords(MOCK_NOTE_TASKS).map((note) => (
                                  <tr key={note.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{note.time}</td>
                                     <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{note.course}</td>
@@ -1227,7 +1224,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                               {MOCK_TASKS.map((task) => (
+                               {directoryRecords(MOCK_TASKS).map((task) => (
                                   <tr key={task.id} className="hover:bg-slate-50 transition-colors">
                                      <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{task.time}</td>
                                      <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{task.course}</td>
@@ -1266,7 +1263,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                               </tr>
                            </thead>
                            <tbody className="divide-y divide-slate-100">
-                              {MOCK_AUTO_SCORE_TASKS.map((task) => (
+                              {directoryRecords(MOCK_AUTO_SCORE_TASKS).map((task) => (
                                  <tr key={task.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4 font-mono text-xs text-slate-500 whitespace-nowrap">{task.time}</td>
                                     <td className="px-6 py-4 font-medium text-slate-800 whitespace-nowrap">{task.course}</td>
@@ -1304,7 +1301,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                                </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                               {MOCK_AI_ASSISTANTS_LIST.map((ai) => (
+                               {directoryRecords(MOCK_AI_ASSISTANTS_LIST).map((ai) => (
                                   <tr key={ai.id} className="hover:bg-slate-50 transition-colors">
                                      <td className="px-6 py-4 font-medium text-slate-800 flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center">
@@ -1332,64 +1329,8 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
              </>
           ) : isComplexDashboard ? (
              <>
-               <div className="bg-white p-1 rounded-xl border border-slate-200 shadow-sm flex overflow-x-auto">
-                 {activeMenuId === 'behavior' ? (
-                     [
-                       { id: 'platform', label: t.process.filters.subCategories.platform, icon: <Layers size={16}/> },
-                       { id: 'course', label: t.process.filters.subCategories.course, icon: <BookOpen size={16}/> },
-                       { id: 'ai', label: t.process.filters.subCategories.ai, icon: <Brain size={16}/> }
-                     ].map(tab => (
-                       <button
-                         key={tab.id}
-                         onClick={() => handleSubTabChange(tab.id)}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-lg transition-all ${
-                           behaviorSubTab === tab.id 
-                             ? 'bg-teal-600 text-white shadow-md' 
-                             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                         }`}
-                       >
-                         {tab.icon} {tab.label}
-                       </button>
-                     ))
-                 ) : activeMenuId === 'soft_exp' ? (
-                     [
-                       { id: 'env', label: t.process.filters.softExpCategories.env, icon: <Monitor size={16}/> },
-                       { id: 'agent', label: t.process.filters.softExpCategories.agent, icon: <Cpu size={16}/> }
-                     ].map(tab => (
-                       <button
-                         key={tab.id}
-                         onClick={() => handleSoftExpSubTabChange(tab.id)}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-lg transition-all ${
-                           softExpSubTab === tab.id 
-                             ? 'bg-teal-600 text-white shadow-md' 
-                             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                         }`}
-                       >
-                         {tab.icon} {tab.label}
-                       </button>
-                     ))
-                 ) : (
-                     [
-                       { id: 'interaction', label: t.process.filters.hardExpCategories.interaction, icon: <Zap size={16}/> },
-                       { id: 'capability', label: t.process.filters.hardExpCategories.capability, icon: <Code size={16}/> }
-                     ].map(tab => (
-                       <button
-                         key={tab.id}
-                         onClick={() => handleHardExpSubTabChange(tab.id)}
-                         className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold rounded-lg transition-all ${
-                           hardExpSubTab === tab.id 
-                             ? 'bg-teal-600 text-white shadow-md' 
-                             : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
-                         }`}
-                       >
-                         {tab.icon} {tab.label}
-                       </button>
-                     ))
-                 )}
-               </div>
-
-               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
-                  <div className={`grid grid-cols-1 gap-6 ${showAgentSelector ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
+               <div className="process-filter-panel process-analysis-filters">
+                  <div className={`process-primary-filters ${showAgentSelector ? 'has-agent' : ''}`}>
                      {showSoftAgentSelector && (
                        <div>
                            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">选择软件智能体</label>
@@ -1420,7 +1361,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 block">{t.process.filters.metric}</label>
                         <select 
                            value={metric} 
-                           onChange={e => setMetric(e.target.value)}
+                           onChange={e => { setMetric(e.target.value); resetMetricDefaults(); }}
                            className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 outline-none"
                         >
                            {activeMenuId === 'behavior' && behaviorSubTab === 'platform' && Object.entries(t.process.filters.metrics_platform).map(([k, v]) => (
@@ -1487,16 +1428,16 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                      </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-4 border-t border-slate-100">
+                  <div className="process-entity-filters">
                      {(dimension === 'school' || dimension === 'class' || dimension === 'user') && (
                         <div>
                            <label className="text-xs font-medium text-slate-500 mb-1 block">选择学校</label>
                            <select 
                               value={selectedSchool}
-                              onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(MOCK_CLASSES[e.target.value as keyof typeof MOCK_CLASSES][0]); }}
+                              onChange={e => { setSelectedSchool(e.target.value); setSelectedClass(MOCK_CLASSES[e.target.value as keyof typeof MOCK_CLASSES]?.[0] || ''); setSelectedUser(''); }}
                               className="w-full p-2 bg-white border border-slate-300 rounded text-sm"
                            >
-                              {MOCK_SCHOOLS.map(s => <option key={s} value={s}>{s}</option>)}
+                              {(activeMenuId === 'behavior' ? [METRIC_DEFAULTS.school] : MOCK_SCHOOLS).map(s => <option key={s} value={s}>{s}</option>)}
                            </select>
                         </div>
                      )}
@@ -1505,10 +1446,10 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                            <label className="text-xs font-medium text-slate-500 mb-1 block">选择班级</label>
                            <select 
                               value={selectedClass}
-                              onChange={e => { setSelectedClass(e.target.value); setSelectedUser(MOCK_USERS[e.target.value as keyof typeof MOCK_USERS]?.[0] || ''); }}
+                              onChange={e => { setSelectedClass(e.target.value); setSelectedUser(''); }}
                               className="w-full p-2 bg-white border border-slate-300 rounded text-sm"
                            >
-                              <option value="">请选择班级...</option>
+                              <option value="">全部班级</option>
                               {MOCK_CLASSES[selectedSchool as keyof typeof MOCK_CLASSES]?.map(c => <option key={c} value={c}>{c}</option>)}
                            </select>
                         </div>
@@ -1521,8 +1462,8 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                               onChange={e => setSelectedUser(e.target.value)}
                               className="w-full p-2 bg-white border border-slate-300 rounded text-sm"
                            >
-                              <option value="">请选择用户...</option>
-                              {MOCK_USERS[selectedClass as keyof typeof MOCK_USERS]?.map(u => <option key={u} value={u}>{u}</option>)}
+                              <option value="">全部用户</option>
+                              {metricUsers.map(u => <option key={u} value={u}>{u}</option>)}
                            </select>
                         </div>
                      )}
@@ -1540,7 +1481,7 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                      )}
                   </div>
 
-                  <div className="flex gap-4 items-center bg-slate-50 p-3 rounded-lg w-fit">
+                  <div className="process-date-filter">
                      <span className="text-sm font-medium text-slate-600">时间范围:</span>
                      <input 
                         type="date" 
@@ -1558,44 +1499,34 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                   </div>
                </div>
 
-               <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 min-h-[400px]">
-                  <div className="flex justify-between items-center mb-6">
-                     <h3 className="font-bold text-slate-700">统计趋势图</h3>
-                     <div className="flex bg-slate-100 p-1 rounded-lg">
+               <div className="process-chart-panel">
+                  <div className="process-chart-header">
+                     <h3 className="font-bold text-slate-700">{chartType === 'table' ? '统计数据明细' : '统计趋势图'}</h3>
+                     <div className="process-chart-actions">
+                       <button onClick={() => setShowExportModal(true)} className="process-export"><Download size={14} /> 导出Excel</button>
+                       <div className="process-chart-switch">
                         {['bar', 'line', 'table'].map(type => (
                            <button 
                               key={type}
                               onClick={() => setChartType(type)}
-                              className={`px-3 py-1.5 text-xs font-bold rounded transition-all ${chartType === type ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                              className={`px-3 py-1.5 text-xs font-bold rounded transition-all ${chartType === type ? 'is-active' : 'text-slate-500 hover:text-slate-700'}`}
                            >
                               {t.process.chart[type as keyof typeof t.process.chart]}
                            </button>
                         ))}
+                       </div>
                      </div>
                   </div>
-                  
-                  {chartType === 'table' ? (
-                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left">
-                           <thead className="bg-slate-50 text-slate-700">
-                              <tr>
-                                 <th className="px-4 py-3 rounded-tl-lg">时间点</th>
-                                 <th className="px-4 py-3 rounded-tr-lg">数值</th>
-                              </tr>
-                           </thead>
-                           <tbody>
-                              {chartData.map((row, i) => (
-                                 <tr key={i} className="border-b border-slate-50">
-                                    <td className="px-4 py-3 font-mono text-slate-600">{row.name}</td>
-                                    <td className="px-4 py-3 font-bold text-teal-600">{row.value}</td>
-                                 </tr>
-                              ))}
-                           </tbody>
-                        </table>
-                     </div>
-                  ) : (
-                     <DynamicProcessChart data={chartData} type={chartType as 'bar'|'line'} color="#0d9488" />
-                  )}
+                  <div className={chartType === 'table' ? 'process-table-body' : 'process-chart-body'}>
+                    {chartType === 'table' ? (
+                      <ProcessMetricTable key={JSON.stringify(metricFilters)} rows={metricResult.rows} metricLabel={selectedLabel || ''} unit={metricUnit(metric)} />
+                    ) : chartData.length ? (
+                      <DynamicProcessChart data={chartData} type={chartType as 'bar' | 'line'} color="#216bff" height={440} />
+                    ) : <div className="process-table-empty">当前筛选条件下暂无数据</div>}
+                  </div>
+                  <div className="process-chart-footer process-updated">{metricResult.source === 'screenshot'
+                    ? '数据来源：截图中完整可见的 37 条用户记录；学号/账号被截断，以 — 显示。汇总仅包含这些记录。'
+                    : '原型演示数据 · 用于展示当前指标的默认明细，不代表实际采集结果。'}</div>
                </div>
              </>
           ) : (
@@ -1641,6 +1572,9 @@ const ProcessData: React.FC<{ language: Language }> = ({ language }) => {
                 </div>
              </div>
           )}
+            </>
+          )}
+       </div>
        </div>
     </div>
   );
