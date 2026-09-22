@@ -14,6 +14,7 @@ export interface ReportConfig {
 }
 export interface LearningReport extends ReportConfig {
   id: string; version: number; createdAt: string;
+  status: 'generating' | 'generated';
   sections: { title: string; body: string }[];
 }
 export function buildLearningReport(config: ReportConfig, previous?: LearningReport): LearningReport {
@@ -24,7 +25,7 @@ export function buildLearningReport(config: ReportConfig, previous?: LearningRep
   return {
     ...config, title: config.title.trim(), prompt: focus, sources: [...config.sources], templates: (config.templates || []).map(template => ({ ...template })),
     id: previous?.id || crypto.randomUUID(), version: (previous?.version || 0) + 1,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toISOString(), status: 'generated',
     sections: [
       { title: '分析范围', body: `本报告面向${config.className}的${config.course}课程，使用${selected.map(source => source.label).join('、')}。以下内容为原型演示分析，尚未调用真实模型或真实班级数据。` },
       ...(focus ? [{ title: '本次分析重点', body: `教师设定：${focus}\n当前为模板演示；已保留该提示词作为报告生成配置。自由文本的完整理解与执行需接入报告生成服务。` }] : []),

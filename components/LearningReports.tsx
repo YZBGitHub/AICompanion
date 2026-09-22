@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FileText, Plus, RefreshCw, Eye, Clock, Sparkles, Search, X, Grid2X2, List, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Plus, RefreshCw, Eye, Clock, Sparkles, Search, X, Grid2X2, List, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 import { createDemoLearningReports, buildLearningReport, LearningReport, ReportConfig, TEACHING_SOURCES, TeachingSourceId } from '../data/learningReports';
 import { browseLearningReports } from '../data/reportBrowsing';
 import TeacherModal from './TeacherModal';
@@ -19,13 +19,15 @@ const LearningReports: React.FC<Props> = ({ school, className, course, classes, 
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
-  useEffect(() => { setPage(1); }, [school, className, course, keyword, pageSize]);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  useEffect(() => { setPage(1); }, [school, className, course, keyword, pageSize, sortOrder]);
   const timer = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => () => clearTimeout(timer.current), []);
-  const results = browseLearningReports(reports, { school, className, course, keyword, page, pageSize });
+  const results = browseLearningReports(reports, { school, className, course, keyword, page, pageSize, sortOrder });
   const pageNumbers = Array.from({ length: results.pages }, (_, index) => index + 1)
     .filter(number => number === 1 || number === results.pages || Math.abs(number - results.page) <= 1);
   const openEditor = (previous?: LearningReport) => {
+    if (busy || previous?.status === 'generating') return;
     setError(''); setTemplateReading(false);
     setEditor({ previous, config: previous ? { ...previous, sources: [...previous.sources], templates: [...(previous.templates || [])] } : {
       school, className, course, title: `${className} · ${course}学情分析报告`, prompt: '', sources: ['skills', 'tasks', 'behavior'], templates: [],
@@ -49,43 +51,46 @@ const LearningReports: React.FC<Props> = ({ school, className, course, classes, 
     let generated: LearningReport;
     try { generated = buildLearningReport(editor.config, editor.previous); } catch (e) { setError((e as Error).message); return; }
     setBusy(true); setError('');
+    setReports(current => [{ ...generated, status: 'generating', sections: [] }, ...current.filter(report => report.id !== generated.id)]);
+    onContextChange(generated.className, generated.course);
+    setKeyword(''); setPage(1); setEditor(null);
+    setNotice(`正在生成「${generated.title}」…`);
     timer.current = setTimeout(() => {
-      setReports(current => [generated, ...current.filter(report => report.id !== generated.id)]);
-      onContextChange(generated.className, generated.course);
-      setKeyword(''); setPage(1);
-      setEditor(null); setBusy(false); setViewing(generated);
-      setNotice(`已${generated.version > 1 ? '重新' : ''}生成「${generated.title}」，版本 V${generated.version}。`);
-    }, 800);
+      const completed: LearningReport = { ...generated, status: 'generated', createdAt: new Date().toISOString() };
+      setReports(current => current.map(report => report.id === completed.id ? completed : report));
+      setBusy(false);
+      setNotice(`已${generated.version > 1 ? '重新' : ''}生成「${generated.title}」。`);
+    }, 1800);
   };
   return <section className="teacher-reports">
-    <div className="teacher-report-heading"><div><h2><FileText size={21} />学情报告</h2><p>按班级与课程沉淀分析结果，支持自定义分析重点与数据源。</p></div><button className="teacher-primary" onClick={() => openEditor()}><Plus size={16} />生成学情报告</button></div>
+    <div className="teacher-report-heading"><div><h2><FileText size={21} />学情报告</h2><p>按班级与课程沉淀分析结果，支持自定义分析重点与数据源。</p></div><button className="teacher-primary" disabled={busy} onClick={() => openEditor()}><Plus size={16} />生成学情报告</button></div>
     <div className="teacher-report-summary"><span>{className}</span><span>{course}</span><span>共 {results.scopedCount} 份报告</span><small>原型演示 · 本次会话内保存</small></div>
     {notice && <p className="teacher-notice" role="status">{notice}</p>}
     <div className="teacher-report-browser-toolbar">
       <div className="teacher-report-search"><Search size={17} aria-hidden="true" /><input type="search" aria-label="搜索报告" placeholder="搜索报告名称、分析重点、正文或数据源" value={keyword} onChange={event => setKeyword(event.target.value)} />{keyword && <button type="button" aria-label="清空搜索" onClick={() => setKeyword('')}><X size={15} /></button>}</div>
       <div className="teacher-report-view-toggle" role="group" aria-label="报告展示形式"><button type="button" aria-pressed={displayMode === 'cards'} className={displayMode === 'cards' ? 'is-active' : ''} onClick={() => setDisplayMode('cards')}><Grid2X2 size={16} />卡片</button><button type="button" aria-pressed={displayMode === 'list'} className={displayMode === 'list' ? 'is-active' : ''} onClick={() => setDisplayMode('list')}><List size={17} />列表</button></div>
     </div>
-    <p className="teacher-report-result-count" role="status">{keyword.trim() ? `搜索到 ${results.total} 份报告` : `${results.total} 份报告 · 最近生成优先`}</p>
+    <p className="teacher-report-result-count" role="status">{keyword.trim() ? `搜索到 ${results.total} 份报告` : `${results.total} 份报告 · ${sortOrder === 'desc' ? '最近生成优先' : '最早生成优先'}`}</p>
     {results.total > 0 && (displayMode === 'cards' ? (
       <div className="teacher-report-cards">
         {results.items.map(report => <article className="teacher-report-card" key={report.id}>
-          <button type="button" className="teacher-report-cover" onClick={() => setViewing(report)} aria-label={`查看报告：${report.title}`}>
+          <button type="button" className="teacher-report-cover" disabled={report.status === 'generating'} onClick={() => setViewing(report)} aria-label={`查看报告：${report.title}`}>
             <span className="teacher-cover-running-head"><span>AI技能分析系统</span><span>学情报告</span></span>
             <span className="teacher-cover-title" title={report.title}>{report.title.startsWith(`${report.course} · `) ? report.title.slice(report.course.length + 3) : report.title}</span>
             <span className="teacher-cover-divider" />
             <span className="teacher-cover-context" title={`${report.className} · ${report.course}`}>{report.className} · {report.course}</span>
-            <span className="teacher-cover-footer"><span>{new Date(report.createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span><span>V{report.version} · 演示报告</span></span>
+            <span className="teacher-cover-footer"><span>{new Date(report.createdAt).toLocaleString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false })}</span><span className={`teacher-status ${report.status === 'generating' ? 'is-generating' : ''}`}>{report.status === 'generating' ? '生成中' : '已生成'}</span></span>
           </button>
           <div className="teacher-report-card-body">
-          <div className="teacher-report-card-actions"><button type="button" onClick={() => setViewing(report)}><Eye size={14} />查看</button><button type="button" onClick={() => openEditor(report)}><RefreshCw size={14} />重新生成</button><ReportDownload report={report} /></div>
+          <div className="teacher-report-card-actions">{report.status === 'generating' ? <span className="teacher-report-pending"><RefreshCw size={14} className="teacher-spinning" />正在生成，请稍候…</span> : <><button type="button" onClick={() => setViewing(report)}><Eye size={14} />查看</button><button type="button" disabled={busy} onClick={() => openEditor(report)}><RefreshCw size={14} />重新生成</button><ReportDownload report={report} /></>}</div>
           </div>
         </article>)}
       </div>
     ) : (
-<div className="teacher-report-table-wrap"><table className="teacher-report-table"><thead><tr><th>报告名称</th><th>数据源</th><th>生成时间</th><th>版本 / 状态</th><th>操作</th></tr></thead>
-      <tbody>{results.items.map(report => <tr key={report.id}><td><strong>{report.title}</strong><small>{report.prompt || '综合学情分析'}</small>{!!report.templates?.length && <small>参考模板：{report.templates.length} 个</small>}</td><td><div className="teacher-tags">{report.sources.map(id => <span key={id}>{TEACHING_SOURCES.find(source => source.id === id)?.label}</span>)}</div></td><td><span className="teacher-report-time"><Clock size={13} />{new Date(report.createdAt).toLocaleString('zh-CN', { hour12: false })}</span></td><td><span className="teacher-status">已生成</span><small>V{report.version} · 演示报告</small></td><td><div className="teacher-row-actions"><button onClick={() => setViewing(report)}><Eye size={14} />查看</button><button onClick={() => openEditor(report)}><RefreshCw size={14} />重新生成</button><ReportDownload report={report} /></div></td></tr>)}</tbody></table></div>
+<div className="teacher-report-table-wrap"><table className="teacher-report-table"><thead><tr><th>报告名称</th><th>数据源</th><th aria-sort={sortOrder === 'asc' ? 'ascending' : 'descending'}><button type="button" className="teacher-time-sort-button" onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')}>生成时间{sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</button></th><th>状态</th><th>操作</th></tr></thead>
+      <tbody>{results.items.map(report => <tr key={report.id}><td><strong>{report.title}</strong><small>{report.prompt || '综合学情分析'}</small>{!!report.templates?.length && <small>参考模板：{report.templates.length} 个</small>}</td><td><div className="teacher-tags">{report.sources.map(id => <span key={id}>{TEACHING_SOURCES.find(source => source.id === id)?.label}</span>)}</div></td><td><span className="teacher-report-time"><Clock size={13} />{new Date(report.createdAt).toLocaleString('zh-CN', { hour12: false })}</span></td><td><span className={`teacher-status ${report.status === 'generating' ? 'is-generating' : ''}`}>{report.status === 'generating' ? '生成中' : '已生成'}</span></td><td><div className="teacher-row-actions">{report.status === 'generating' ? <span className="teacher-report-pending"><RefreshCw size={14} className="teacher-spinning" />正在生成…</span> : <><button onClick={() => setViewing(report)}><Eye size={14} />查看</button><button disabled={busy} onClick={() => openEditor(report)}><RefreshCw size={14} />重新生成</button><ReportDownload report={report} /></>}</div></td></tr>)}</tbody></table></div>
     ))}
-    {!results.total && <div className="teacher-empty">{results.scopedCount ? <Search size={40} /> : <FileText size={40} />}<h3>{results.scopedCount ? '未找到匹配的报告' : '当前班级与课程暂无报告'}</h3><p>{results.scopedCount ? '请尝试其他关键词，或清空搜索查看全部报告。' : '选择数据源并填写分析重点，即可生成第一份学情报告。'}</p>{results.scopedCount ? <button className="teacher-secondary" onClick={() => setKeyword('')}>清空搜索</button> : <button className="teacher-primary" onClick={() => openEditor()}>生成第一份报告</button>}</div>}
+    {!results.total && <div className="teacher-empty">{results.scopedCount ? <Search size={40} /> : <FileText size={40} />}<h3>{results.scopedCount ? '未找到匹配的报告' : '当前班级与课程暂无报告'}</h3><p>{results.scopedCount ? '请尝试其他关键词，或清空搜索查看全部报告。' : '选择数据源并填写分析重点，即可生成第一份学情报告。'}</p>{results.scopedCount ? <button className="teacher-secondary" onClick={() => setKeyword('')}>清空搜索</button> : <button className="teacher-primary" disabled={busy} onClick={() => openEditor()}>生成第一份报告</button>}</div>}
     <nav className="teacher-report-pagination" aria-label="报告分页">
       <span>共 {results.total} 条{results.total > 0 && `，显示 ${results.start}–${results.end} 条`}</span>
       <div><select aria-label="每页报告数量" value={pageSize} onChange={event => setPageSize(Number(event.target.value))}>{[6, 12, 24].map(size => <option key={size} value={size}>{size} 条/页</option>)}</select>

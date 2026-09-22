@@ -190,3 +190,10 @@
 @media (prefers-reduced-motion: reduce) { .teacher-report-cover { transition: none; } .teacher-report-cover:hover { transform: none; } }
 
 .teacher-cover-context { display: block; margin-bottom: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; color: #8792a4; font-size: 11px; }
+.teacher-time-sort-button { display: inline-flex; align-items: center; gap: 6px; color: #526582; }
+.teacher-status.is-generating { color: #b67b13; background: #fff6df; }
+.teacher-report-pending { display: flex; align-items: center; gap: 7px; color: #b18a37; font-size: 12px; min-height: 28px; }
+.teacher-report-cover:disabled { cursor: progress; }
+.teacher-report-cover:disabled:hover { transform: none; }
+.teacher-report-card-actions button:disabled, .teacher-row-actions button:disabled { opacity: .45; cursor: not-allowed; }
+@media (max-width: 767px) { .teacher-report-browser-toolbar { flex-wrap: wrap; } .teacher-report-search { flex-basis: 100%; max-width: none; } }
